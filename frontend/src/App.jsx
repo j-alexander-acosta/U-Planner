@@ -147,10 +147,30 @@ export default function App() {
                         active={activeTab === 'dashboard'}
                         onClick={() => setActiveTab('dashboard')}
                     />
-                    <SidebarItem icon={Users} label="Docentes" active={activeTab === 'teachers'} />
-                    <SidebarItem icon={BookOpen} label="Asignaturas" active={activeTab === 'subjects'} />
-                    <SidebarItem icon={DoorOpen} label="Salas" active={activeTab === 'rooms'} />
-                    <SidebarItem icon={Calendar} label="Horarios" active={activeTab === 'schedules'} />
+                    <SidebarItem
+                        icon={Users}
+                        label="Docentes"
+                        active={activeTab === 'teachers'}
+                        onClick={() => setActiveTab('teachers')}
+                    />
+                    <SidebarItem
+                        icon={BookOpen}
+                        label="Asignaturas"
+                        active={activeTab === 'subjects'}
+                        onClick={() => setActiveTab('subjects')}
+                    />
+                    <SidebarItem
+                        icon={DoorOpen}
+                        label="Salas"
+                        active={activeTab === 'rooms'}
+                        onClick={() => setActiveTab('rooms')}
+                    />
+                    <SidebarItem
+                        icon={Calendar}
+                        label="Horarios"
+                        active={activeTab === 'schedules'}
+                        onClick={() => setActiveTab('schedules')}
+                    />
                     <SidebarItem
                         icon={FileText}
                         label="Reportes"
@@ -168,7 +188,7 @@ export default function App() {
             <main className="flex-1 flex flex-col gap-6">
                 <header className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-3xl font-bold">Bienvenido, Arquitecto</h2>
+                        <h2 className="text-3xl font-bold">Bienvenido, Alexander</h2>
                         <p className="text-slate-400 mt-1">Gestión académica Universidad Adventista de Chile</p>
                     </div>
 
@@ -193,6 +213,30 @@ export default function App() {
 
                 {activeTab === 'reports' ? (
                     <Reports />
+                ) : activeTab === 'teachers' ? (
+                    <div className="glass p-8 text-center text-slate-400">
+                        <Users size={48} className="mx-auto mb-4 opacity-20" />
+                        <h3 className="text-xl font-bold text-white">Módulo de Docentes</h3>
+                        <p>Gestión y disponibilidad de la plantilla académica.</p>
+                    </div>
+                ) : activeTab === 'subjects' ? (
+                    <div className="glass p-8 text-center text-slate-400">
+                        <BookOpen size={48} className="mx-auto mb-4 opacity-20" />
+                        <h3 className="text-xl font-bold text-white">Catálogo de Asignaturas</h3>
+                        <p>Administración de currícula y cupos por carrera.</p>
+                    </div>
+                ) : activeTab === 'rooms' ? (
+                    <div className="glass p-8 text-center text-slate-400">
+                        <DoorOpen size={48} className="mx-auto mb-4 opacity-20" />
+                        <h3 className="text-xl font-bold text-white">Inventario de Salas</h3>
+                        <p>Gestión de laboratorios y aulas teóricas.</p>
+                    </div>
+                ) : activeTab === 'schedules' ? (
+                    <div className="glass p-8 text-center text-slate-400">
+                        <Calendar size={48} className="mx-auto mb-4 opacity-20" />
+                        <h3 className="text-xl font-bold text-white">Visor de Horarios</h3>
+                        <p>Vista completa de la programación académica.</p>
+                    </div>
                 ) : userRole === 'director' ? (
                     <DirectorDashboard />
                 ) : (
