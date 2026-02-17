@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import DirectorDashboard from './DirectorDashboard';
 
 const Notification = ({ message, type, onClose }) => (
     <motion.div
@@ -60,6 +61,7 @@ export default function App() {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [notifications, setNotifications] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [userRole, setUserRole] = useState('registro'); // 'registro' | 'director'
     const [formData, setFormData] = useState({
         teacher_id: '',
         room_id: '',
@@ -120,9 +122,20 @@ export default function App() {
 
             {/* Sidebar */}
             <aside className="w-64 glass p-6 flex flex-col gap-8 mr-6">
-                <div className="flex items-center gap-3 px-2">
-                    <div className="bg-blue-600 w-8 h-8 rounded-lg flex items-center justify-center font-bold">U</div>
-                    <h1 className="text-xl font-bold gradient-text">U-Planner</h1>
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-3 px-2 mb-2">
+                        <div className="bg-blue-600 w-8 h-8 rounded-lg flex items-center justify-center font-bold">U</div>
+                        <h1 className="text-xl font-bold gradient-text">U-Planner</h1>
+                    </div>
+
+                    <select
+                        value={userRole}
+                        onChange={(e) => setUserRole(e.target.value)}
+                        className="bg-slate-800 border-none text-xs p-2 rounded-lg text-slate-300 outline-none cursor-pointer"
+                    >
+                        <option value="registro">Registro Académico</option>
+                        <option value="director">Director de Carrera</option>
+                    </select>
                 </div>
 
                 <nav className="flex flex-col gap-2">
@@ -170,153 +183,159 @@ export default function App() {
                     </div>
                 </header>
 
-                {/* Modal New Schedule */}
-                <AnimatePresence>
-                    {isModalOpen && (
-                        <div className="modal-overlay">
-                            <motion.div
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0.9, opacity: 0 }}
-                                className="modal-content"
-                            >
-                                <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-xl font-bold">Crear Nuevo Horario</h3>
-                                    <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
-                                        <X size={20} />
+                {userRole === 'director' ? (
+                    <DirectorDashboard />
+                ) : (
+                    <>
+                        {/* Modal New Schedule */}
+                        <AnimatePresence>
+                            {isModalOpen && (
+                                <div className="modal-overlay">
+                                    <motion.div
+                                        initial={{ scale: 0.9, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        exit={{ scale: 0.9, opacity: 0 }}
+                                        className="modal-content"
+                                    >
+                                        <div className="flex justify-between items-center mb-6">
+                                            <h3 className="text-xl font-bold">Crear Nuevo Horario</h3>
+                                            <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
+                                                <X size={20} />
+                                            </button>
+                                        </div>
+
+                                        <form onSubmit={handleCreateSchedule}>
+                                            <div className="input-group">
+                                                <label>ID Docente</label>
+                                                <input
+                                                    required
+                                                    type="number"
+                                                    className="input-field"
+                                                    placeholder="Ej: 1"
+                                                    value={formData.teacher_id}
+                                                    onChange={e => setFormData({ ...formData, teacher_id: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="input-group">
+                                                <label>ID Sala</label>
+                                                <input
+                                                    required
+                                                    type="number"
+                                                    className="input-field"
+                                                    placeholder="Ej: 5"
+                                                    value={formData.room_id}
+                                                    onChange={e => setFormData({ ...formData, room_id: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="input-group">
+                                                <label>ID Asignatura</label>
+                                                <input
+                                                    required
+                                                    type="number"
+                                                    className="input-field"
+                                                    placeholder="Ej: 10"
+                                                    value={formData.subject_id}
+                                                    onChange={e => setFormData({ ...formData, subject_id: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="input-group">
+                                                <label>ID Bloque Horario</label>
+                                                <input
+                                                    required
+                                                    type="number"
+                                                    className="input-field"
+                                                    placeholder="Ej: 3"
+                                                    value={formData.time_block_id}
+                                                    onChange={e => setFormData({ ...formData, time_block_id: e.target.value })}
+                                                />
+                                            </div>
+
+                                            <div className="flex gap-4 mt-8">
+                                                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary flex-1">
+                                                    Cancelar
+                                                </button>
+                                                <button type="submit" className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl flex-1">
+                                                    Guardar Horario
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </motion.div>
+                                </div>
+                            )}
+                        </AnimatePresence>
+
+                        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <StatCard label="Total Docentes" value="124" trend="+4 este mes" icon={Users} />
+                            <StatCard label="Salas Ocupadas" value="18/42" trend="42% capacidad" icon={DoorOpen} />
+                            <StatCard label="Asignaturas" value="312" trend="En progreso" icon={BookOpen} />
+                            <StatCard label="Conflictos" value="0" trend="Optimizado" icon={Calendar} />
+                        </section>
+
+                        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="lg:col-span-2 glass p-6 overflow-hidden flex flex-col">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-xl font-bold">Asignaciones Sugeridas</h3>
+                                    <button className="text-blue-400 text-sm font-semibold flex items-center gap-1 hover:text-blue-300">
+                                        Ver todo <ChevronRight size={16} />
                                     </button>
                                 </div>
 
-                                <form onSubmit={handleCreateSchedule}>
-                                    <div className="input-group">
-                                        <label>ID Docente</label>
-                                        <input
-                                            required
-                                            type="number"
-                                            className="input-field"
-                                            placeholder="Ej: 1"
-                                            value={formData.teacher_id}
-                                            onChange={e => setFormData({ ...formData, teacher_id: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="input-group">
-                                        <label>ID Sala</label>
-                                        <input
-                                            required
-                                            type="number"
-                                            className="input-field"
-                                            placeholder="Ej: 5"
-                                            value={formData.room_id}
-                                            onChange={e => setFormData({ ...formData, room_id: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="input-group">
-                                        <label>ID Asignatura</label>
-                                        <input
-                                            required
-                                            type="number"
-                                            className="input-field"
-                                            placeholder="Ej: 10"
-                                            value={formData.subject_id}
-                                            onChange={e => setFormData({ ...formData, subject_id: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="input-group">
-                                        <label>ID Bloque Horario</label>
-                                        <input
-                                            required
-                                            type="number"
-                                            className="input-field"
-                                            placeholder="Ej: 3"
-                                            value={formData.time_block_id}
-                                            onChange={e => setFormData({ ...formData, time_block_id: e.target.value })}
-                                        />
-                                    </div>
-
-                                    <div className="flex gap-4 mt-8">
-                                        <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary flex-1">
-                                            Cancelar
-                                        </button>
-                                        <button type="submit" className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl flex-1">
-                                            Guardar Horario
-                                        </button>
-                                    </div>
-                                </form>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
-
-                <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <StatCard label="Total Docentes" value="124" trend="+4 este mes" icon={Users} />
-                    <StatCard label="Salas Ocupadas" value="18/42" trend="42% capacidad" icon={DoorOpen} />
-                    <StatCard label="Asignaturas" value="312" trend="En progreso" icon={BookOpen} />
-                    <StatCard label="Conflictos" value="0" trend="Optimizado" icon={Calendar} />
-                </section>
-
-                <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2 glass p-6 overflow-hidden flex flex-col">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold">Asignaciones Sugeridas</h3>
-                            <button className="text-blue-400 text-sm font-semibold flex items-center gap-1 hover:text-blue-300">
-                                Ver todo <ChevronRight size={16} />
-                            </button>
-                        </div>
-
-                        <div className="flex-1 overflow-auto">
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="text-slate-500 text-sm border-b border-slate-800">
-                                        <th className="pb-4 font-medium">Asignatura</th>
-                                        <th className="pb-4 font-medium">Docente</th>
-                                        <th className="pb-4 font-medium">Sala</th>
-                                        <th className="pb-4 font-medium">Estado</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-sm">
-                                    {[1, 2, 3, 4, 5].map((i) => (
-                                        <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-800/20">
-                                            <td className="py-4 font-semibold">Cálculo Multivariable</td>
-                                            <td className="py-4 text-slate-400">Dr. Ricardo Pérez</td>
-                                            <td className="py-4 text-slate-400">Lab. Computación 1</td>
-                                            <td className="py-4">
-                                                <span className="bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-lg text-xs font-bold border border-emerald-500/20">
-                                                    Confirmado
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div className="glass p-6 flex flex-col gap-6">
-                        <h3 className="text-xl font-bold">Disponibilidad Laboratorios</h3>
-                        <div className="flex flex-col gap-4">
-                            {[
-                                { name: 'Computación', usage: 85 },
-                                { name: 'Ciencias Básicas', usage: 45 },
-                                { name: 'Salud / Simulación', usage: 60 },
-                                { name: 'Talleres', usage: 30 }
-                            ].map((lab) => (
-                                <div key={lab.name} className="flex flex-col gap-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-slate-400">{lab.name}</span>
-                                        <span className="font-bold">{lab.usage}%</span>
-                                    </div>
-                                    <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${lab.usage}%` }}
-                                            className={`h-full ${lab.usage > 80 ? 'bg-red-500' : 'bg-blue-500'}`}
-                                        />
-                                    </div>
+                                <div className="flex-1 overflow-auto">
+                                    <table className="w-full text-left">
+                                        <thead>
+                                            <tr className="text-slate-500 text-sm border-b border-slate-800">
+                                                <th className="pb-4 font-medium">Asignatura</th>
+                                                <th className="pb-4 font-medium">Docente</th>
+                                                <th className="pb-4 font-medium">Sala</th>
+                                                <th className="pb-4 font-medium">Estado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="text-sm">
+                                            {[1, 2, 3, 4, 5].map((i) => (
+                                                <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-800/20">
+                                                    <td className="py-4 font-semibold">Cálculo Multivariable</td>
+                                                    <td className="py-4 text-slate-400">Dr. Ricardo Pérez</td>
+                                                    <td className="py-4 text-slate-400">Lab. Computación 1</td>
+                                                    <td className="py-4">
+                                                        <span className="bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-lg text-xs font-bold border border-emerald-500/20">
+                                                            Confirmado
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
-                            ))}
+                            </div>
+
+                            <div className="glass p-6 flex flex-col gap-6">
+                                <h3 className="text-xl font-bold">Disponibilidad Laboratorios</h3>
+                                <div className="flex flex-col gap-4">
+                                    {[
+                                        { name: 'Computación', usage: 85 },
+                                        { name: 'Ciencias Básicas', usage: 45 },
+                                        { name: 'Salud / Simulación', usage: 60 },
+                                        { name: 'Talleres', usage: 30 }
+                                    ].map((lab) => (
+                                        <div key={lab.name} className="flex flex-col gap-2">
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-slate-400">{lab.name}</span>
+                                                <span className="font-bold">{lab.usage}%</span>
+                                            </div>
+                                            <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                                                <motion.div
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${lab.usage}%` }}
+                                                    className={`h-full ${lab.usage > 80 ? 'bg-red-500' : 'bg-blue-500'}`}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    </>
+                )}
             </main>
         </div>
     );
