@@ -10,6 +10,12 @@ class Role(Base):
     name = Column(String, unique=True, nullable=False)
     users = relationship("User", back_populates="role")
 
+class Faculty(Base):
+    __tablename__ = "faculties"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False)
+    subjects = relationship("Subject", back_populates="faculty")
+
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
@@ -69,7 +75,10 @@ class Subject(Base):
     name = Column(String, nullable=False)
     enrolled_students = Column(Integer, default=0)
     required_room_type_id = Column(Integer, ForeignKey("room_types.id"))
+    faculty_id = Column(Integer, ForeignKey("faculties.id"))
+    
     required_room_type = relationship("RoomType", back_populates="subjects")
+    faculty = relationship("Faculty", back_populates="subjects")
     schedules = relationship("Schedule", back_populates="subject")
 
 class Schedule(Base):

@@ -10,6 +10,14 @@ class Role(RoleBase):
     class Config:
         from_attributes = True
 
+class FacultyBase(BaseModel):
+    name: str
+
+class Faculty(FacultyBase):
+    id: int
+    class Config:
+        from_attributes = True
+
 class UserBase(BaseModel):
     username: str
     email: str
@@ -46,6 +54,7 @@ class SubjectBase(BaseModel):
     name: str
     enrolled_students: int
     required_room_type_id: int
+    faculty_id: Optional[int] = None
 
 class Subject(SubjectBase):
     id: int

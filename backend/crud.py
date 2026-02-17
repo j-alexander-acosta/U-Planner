@@ -78,3 +78,9 @@ def create_schedule(db: Session, schedule: schemas.ScheduleBase):
 
 def get_schedules(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Schedule).offset(skip).limit(limit).all()
+
+def get_faculties(db: Session):
+    return db.query(models.Faculty).all()
+
+def get_schedules_by_faculty(db: Session, faculty_id: int):
+    return db.query(models.Schedule).join(models.Subject).filter(models.Subject.faculty_id == faculty_id).all()

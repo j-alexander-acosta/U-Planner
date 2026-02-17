@@ -56,13 +56,21 @@ CREATE TABLE rooms (
     FOREIGN KEY (room_type_id) REFERENCES room_types(id)
 );
 
--- 6. Subjects (Asignaturas)
+-- 6. Faculties
+CREATE TABLE faculties (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- 7. Subjects (Asignaturas)
 CREATE TABLE subjects (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
     enrolled_students INTEGER DEFAULT 0,
     required_room_type_id INTEGER NOT NULL, -- Crucial for equipment constraint
-    FOREIGN KEY (required_room_type_id) REFERENCES room_types(id)
+    faculty_id INTEGER,
+    FOREIGN KEY (required_room_type_id) REFERENCES room_types(id),
+    FOREIGN KEY (faculty_id) REFERENCES faculties(id)
 );
 
 -- 7. Schedules (Horarios - Central Pivot)
@@ -85,3 +93,4 @@ CREATE TABLE schedules (
 -- Initial Data (Sample)
 INSERT INTO roles (name) VALUES ('Superusuario'), ('Registro Académico'), ('Director de Carrera');
 INSERT INTO room_types (name) VALUES ('Teórica'), ('Computación'), ('Ciencias Básicas'), ('Salud/Simulación'), ('Talleres');
+INSERT INTO faculties (name) VALUES ('Ingeniería'), ('Salud'), ('Educación'), ('Ciencias Empresariales');

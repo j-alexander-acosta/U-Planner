@@ -11,11 +11,13 @@ import {
     ChevronRight,
     AlertCircle,
     CheckCircle2,
-    X
+    X,
+    FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import DirectorDashboard from './DirectorDashboard';
+import Reports from './Reports';
 
 const Notification = ({ message, type, onClose }) => (
     <motion.div
@@ -149,6 +151,12 @@ export default function App() {
                     <SidebarItem icon={BookOpen} label="Asignaturas" active={activeTab === 'subjects'} />
                     <SidebarItem icon={DoorOpen} label="Salas" active={activeTab === 'rooms'} />
                     <SidebarItem icon={Calendar} label="Horarios" active={activeTab === 'schedules'} />
+                    <SidebarItem
+                        icon={FileText}
+                        label="Reportes"
+                        active={activeTab === 'reports'}
+                        onClick={() => setActiveTab('reports')}
+                    />
                 </nav>
 
                 <div className="mt-auto">
@@ -183,7 +191,9 @@ export default function App() {
                     </div>
                 </header>
 
-                {userRole === 'director' ? (
+                {activeTab === 'reports' ? (
+                    <Reports />
+                ) : userRole === 'director' ? (
                     <DirectorDashboard />
                 ) : (
                     <>
