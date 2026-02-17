@@ -8,9 +8,28 @@ import {
     Settings,
     Plus,
     Search,
-    ChevronRight
+    ChevronRight,
+    AlertCircle,
+    CheckCircle2,
+    X
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
+
+const Notification = ({ message, type, onClose }) => (
+    <motion.div
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className={`toast ${type === 'success' ? 'toast-success' : 'toast-error'}`}
+    >
+        {type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
+        <span className="text-sm font-medium">{message}</span>
+        <button onClick={onClose} className="ml-2 hover:opacity-70">
+            <X size={16} />
+        </button>
+    </motion.div>
+);
 
 const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
     <motion.div
@@ -39,9 +58,66 @@ const StatCard = ({ label, value, trend, icon: Icon }) => (
 
 export default function App() {
     const [activeTab, setActiveTab] = useState('dashboard');
+    const [notifications, setNotifications] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [formData, setFormData] = useState({
+        teacher_id: '',
+        room_id: '',
+        subject_id: '',
+        time_block_id: ''
+    });
+
+    const addNotification = (message, type = 'success') => {
+        const id = Math.random().toString(36).substr(2, 9);
+        setNotifications(prev => [...prev, { id, message, type }]);
+        setTimeout(() => {
+            setNotifications(prev => prev.filter(n => n.id !== id));
+        }, 5000);
+    };
+
+    const handleCreateSchedule = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axios.post('/api/schedules/', {
+                teacher_id: parseInt(formData.teacher_id),
+                room_id: parseInt(formData.room_id),
+                subject_id: parseInt(formData.subject_id),
+                time_block_id: parseInt(formData.time_block_id)
+            });
+
+            addNotification('¡Horario creado con éxito!', 'success');
+            setIsModalOpen(false);
+            setFormData({ teacher_id: '', room_id: '', subject_id: '', time_block_id: '' });
+        } catch (error) {
+            const errorData = error.response?.data;
+            let errorMsg = 'Error al conectar con el servidor';
+
+            if (typeof errorData?.detail === 'string') {
+                errorMsg = errorData.detail;
+            } else if (Array.isArray(errorData?.detail)) {
+                errorMsg = errorData.detail[0]?.msg || 'Error de validación';
+            }
+
+            addNotification(errorMsg, 'error');
+        }
+    };
 
     return (
         <div className="flex min-h-screen bg-slate-950 text-slate-100 p-4">
+            {/* Notifications */}
+            <div className="toast-container">
+                <AnimatePresence>
+                    {notifications.map(n => (
+                        <Notification
+                            key={n.id}
+                            message={n.message}
+                            type={n.type}
+                            onClose={() => setNotifications(prev => prev.filter(item => item.id !== n.id))}
+                        />
+                    ))}
+                </AnimatePresence>
+            </div>
+
             {/* Sidebar */}
             <aside className="w-64 glass p-6 flex flex-col gap-8 mr-6">
                 <div className="flex items-center gap-3 px-2">
@@ -84,14 +160,93 @@ export default function App() {
                                 className="bg-transparent border-none outline-none text-sm w-48"
                             />
                         </div>
-                        <button className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-semibold shadow-lg shadow-blue-900/20">
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-semibold shadow-lg shadow-blue-900/20"
+                        >
                             <Plus size={20} />
                             <span>Nuevo Horario</span>
                         </button>
                     </div>
                 </header>
 
-                {/* Stats Grid */}
+                {/* Modal New Schedule */}
+                <AnimatePresence>
+                    {isModalOpen && (
+                        <div className="modal-overlay">
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.9, opacity: 0 }}
+                                className="modal-content"
+                            >
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-xl font-bold">Crear Nuevo Horario</h3>
+                                    <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
+                                        <X size={20} />
+                                    </button>
+                                </div>
+
+                                <form onSubmit={handleCreateSchedule}>
+                                    <div className="input-group">
+                                        <label>ID Docente</label>
+                                        <input
+                                            required
+                                            type="number"
+                                            className="input-field"
+                                            placeholder="Ej: 1"
+                                            value={formData.teacher_id}
+                                            onChange={e => setFormData({ ...formData, teacher_id: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="input-group">
+                                        <label>ID Sala</label>
+                                        <input
+                                            required
+                                            type="number"
+                                            className="input-field"
+                                            placeholder="Ej: 5"
+                                            value={formData.room_id}
+                                            onChange={e => setFormData({ ...formData, room_id: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="input-group">
+                                        <label>ID Asignatura</label>
+                                        <input
+                                            required
+                                            type="number"
+                                            className="input-field"
+                                            placeholder="Ej: 10"
+                                            value={formData.subject_id}
+                                            onChange={e => setFormData({ ...formData, subject_id: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="input-group">
+                                        <label>ID Bloque Horario</label>
+                                        <input
+                                            required
+                                            type="number"
+                                            className="input-field"
+                                            placeholder="Ej: 3"
+                                            value={formData.time_block_id}
+                                            onChange={e => setFormData({ ...formData, time_block_id: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div className="flex gap-4 mt-8">
+                                        <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary flex-1">
+                                            Cancelar
+                                        </button>
+                                        <button type="submit" className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl flex-1">
+                                            Guardar Horario
+                                        </button>
+                                    </div>
+                                </form>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
                 <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <StatCard label="Total Docentes" value="124" trend="+4 este mes" icon={Users} />
                     <StatCard label="Salas Ocupadas" value="18/42" trend="42% capacidad" icon={DoorOpen} />
@@ -99,7 +254,6 @@ export default function App() {
                     <StatCard label="Conflictos" value="0" trend="Optimizado" icon={Calendar} />
                 </section>
 
-                {/* Recent Activities / Tables View */}
                 <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2 glass p-6 overflow-hidden flex flex-col">
                         <div className="flex items-center justify-between mb-6">
