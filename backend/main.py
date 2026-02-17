@@ -1,8 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.orm import Session
-from typing import List
-
-from . import models, database, schemas
+from . import models, database, schemas, crud
 from .database import engine, get_db
 
 # Create database tables
@@ -13,6 +9,16 @@ app = FastAPI(title="U-Planner API")
 @app.get("/")
 def read_root():
     return {"message": "Welcome to U-Planner API"}
+
+# --- Schedules ---
+@app.post("/schedules/", response_model=schemas.Schedule)
+def create_schedule(schedule: schemas.ScheduleBase, db: Session = Depends(get_db)):
+    # validation happens inside crud.create_schedule
+    return crud.create_schedule(db=db, schedule=schedule)
+
+@app.get("/schedules/", response_model=List[schemas.Schedule])
+def read_schedules(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return crud.get_schedules(db=db, skip=skip, limit=limit)
 
 # --- Subjects ---
 @app.post("/subjects/", response_model=schemas.Subject)
