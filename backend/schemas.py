@@ -32,6 +32,15 @@ class User(UserBase):
     class Config:
         from_attributes = True
 
+class TeacherBase(BaseModel):
+    full_name: str
+    rut: str
+
+class Teacher(TeacherBase):
+    id: int
+    class Config:
+        from_attributes = True
+
 class RoomTypeBase(BaseModel):
     name: str
 

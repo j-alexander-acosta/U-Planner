@@ -29,7 +29,9 @@ class User(Base):
 class Teacher(Base):
     __tablename__ = "teachers"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), unique=True)
+    full_name = Column(String, nullable=False)
+    rut = Column(String, unique=True, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=True)
     specialization = Column(String)
     user = relationship("User", back_populates="teacher")
     availability = relationship("TeacherAvailability", back_populates="teacher")

@@ -214,10 +214,71 @@ export default function App() {
                 {activeTab === 'reports' ? (
                     <Reports />
                 ) : activeTab === 'teachers' ? (
-                    <div className="glass p-8 text-center text-slate-400">
-                        <Users size={48} className="mx-auto mb-4 opacity-20" />
-                        <h3 className="text-xl font-bold text-white">Módulo de Docentes</h3>
-                        <p>Gestión y disponibilidad de la plantilla académica.</p>
+                    <div className="flex flex-col gap-6">
+                        <div className="flex justify-between items-end">
+                            <div>
+                                <h2 className="text-3xl font-bold">Módulo de Docentes</h2>
+                                <p className="text-slate-400 mt-1">Gestión y carga masiva de la plantilla académica</p>
+                            </div>
+                        </div>
+
+                        {/* Upload Section */}
+                        <div className="glass p-6">
+                            <h3 className="text-lg font-bold mb-4">Importar Docentes desde Excel</h3>
+                            <p className="text-slate-400 text-sm mb-4">
+                                El archivo debe tener dos columnas: <strong>Nombre Completo</strong> y <strong>RUT</strong>. La primera fila se considera encabezado.
+                            </p>
+                            <div className="flex gap-4 items-center">
+                                <input
+                                    type="file"
+                                    accept=".xlsx,.xls"
+                                    id="excel-upload"
+                                    className="hidden"
+                                    onChange={async (e) => {
+                                        const selectedFile = e.target.files[0];
+                                        if (!selectedFile) return;
+                                        const formData = new FormData();
+                                        formData.append('file', selectedFile);
+                                        try {
+                                            const res = await axios.post('/api/teachers/upload-excel/', formData, {
+                                                headers: { 'Content-Type': 'multipart/form-data' }
+                                            });
+                                            setNotification({ message: `${res.data.created} docente(s) importados, ${res.data.skipped} omitidos.`, type: 'success' });
+                                        } catch (err) {
+                                            setNotification({ message: err.response?.data?.detail || 'Error al importar', type: 'error' });
+                                        }
+                                        e.target.value = '';
+                                    }}
+                                />
+                                <label
+                                    htmlFor="excel-upload"
+                                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-bold cursor-pointer transition-all"
+                                >
+                                    <Plus size={20} />
+                                    Seleccionar Archivo Excel
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Teacher List Placeholder */}
+                        <div className="glass p-6">
+                            <h3 className="text-lg font-bold mb-4">Plantilla Docente Actual</h3>
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="text-slate-500 text-sm border-b border-slate-800">
+                                        <th className="pb-4 font-medium">Nombre Completo</th>
+                                        <th className="pb-4 font-medium">RUT</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="text-sm">
+                                    <tr className="border-b border-slate-800/50">
+                                        <td className="py-6 text-center text-slate-500" colSpan="2">
+                                            Importe un archivo Excel para visualizar los docentes aquí.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 ) : activeTab === 'subjects' ? (
                     <div className="glass p-8 text-center text-slate-400">

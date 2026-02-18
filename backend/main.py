@@ -1,3 +1,9 @@
+from fastapi import FastAPI, Depends, UploadFile, File, HTTPException
+from sqlalchemy.orm import Session
+from typing import List
+import openpyxl
+import io
+
 from . import models, database, schemas, crud
 from .database import engine, get_db
 
@@ -9,6 +15,54 @@ app = FastAPI(title="U-Planner API")
 @app.get("/")
 def read_root():
     return {"message": "Welcome to U-Planner API"}
+
+# --- Teachers ---
+@app.get("/teachers/", response_model=List[schemas.Teacher])
+def read_teachers(db: Session = Depends(get_db)):
+    return db.query(models.Teacher).all()
+
+@app.post("/teachers/upload-excel/")
+async def upload_teachers_excel(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    if not file.filename.endswith((".xlsx", ".xls")):
+        raise HTTPException(status_code=400, detail="El archivo debe ser un Excel (.xlsx o .xls)")
+    
+    contents = await file.read()
+    wb = openpyxl.load_workbook(io.BytesIO(contents))
+    ws = wb.active
+    
+    created = 0
+    skipped = 0
+    errors = []
+    
+    for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+        if not row or len(row) < 2:
+            continue
+        
+        full_name = str(row[0]).strip() if row[0] else None
+        rut = str(row[1]).strip() if row[1] else None
+        
+        if not full_name or not rut:
+            errors.append(f"Fila {row_idx}: nombre o RUT vacío")
+            continue
+        
+        # Check if RUT already exists
+        existing = db.query(models.Teacher).filter(models.Teacher.rut == rut).first()
+        if existing:
+            skipped += 1
+            continue
+        
+        teacher = models.Teacher(full_name=full_name, rut=rut)
+        db.add(teacher)
+        created += 1
+    
+    db.commit()
+    
+    return {
+        "message": f"Importación completada",
+        "created": created,
+        "skipped": skipped,
+        "errors": errors
+    }
 
 # --- Schedules ---
 @app.post("/schedules/", response_model=schemas.Schedule)
