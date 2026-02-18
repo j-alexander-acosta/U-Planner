@@ -110,6 +110,61 @@ def create_room(room: schemas.RoomBase, db: Session = Depends(get_db)):
 def read_rooms(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return db.query(models.Room).offset(skip).limit(limit).all()
 
+@app.post("/rooms/upload-excel/")
+async def upload_rooms_excel(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    if not file.filename.endswith((".xlsx", ".xls")):
+        raise HTTPException(status_code=400, detail="El archivo debe ser un Excel (.xlsx o .xls)")
+    
+    contents = await file.read()
+    wb = openpyxl.load_workbook(io.BytesIO(contents))
+    ws = wb.active
+    
+    created = 0
+    skipped = 0
+    seen_codes = set()
+    
+    for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+        if not row or len(row) < 3:
+            continue
+        
+        code = str(row[0]).strip() if row[0] else None
+        name = str(row[1]).strip() if row[1] else None
+        cap_raw = row[2]
+        
+        if not code or not name or code == "None" or name == "None":
+            continue
+        
+        try:
+            capacity = int(cap_raw)
+        except (TypeError, ValueError):
+            continue
+        
+        if code in seen_codes:
+            skipped += 1
+            continue
+        seen_codes.add(code)
+        
+        existing = db.query(models.Room).filter(models.Room.code == code).first()
+        if existing:
+            skipped += 1
+            continue
+        
+        room = models.Room(code=code, name=name, capacity=capacity)
+        db.add(room)
+        created += 1
+    
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al guardar: {str(e)}")
+    
+    return {
+        "message": "Importación completada",
+        "created": created,
+        "skipped": skipped
+    }
+
 # --- Room Types ---
 @app.get("/room-types/", response_model=List[schemas.RoomType])
 def read_room_types(db: Session = Depends(get_db)):

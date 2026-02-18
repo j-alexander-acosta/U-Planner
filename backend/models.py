@@ -65,9 +65,10 @@ class RoomType(Base):
 class Room(Base):
     __tablename__ = "rooms"
     id = Column(Integer, primary_key=True, index=True)
+    code = Column(String, unique=True, nullable=False)
     name = Column(String, nullable=False)
     capacity = Column(Integer, nullable=False)
-    room_type_id = Column(Integer, ForeignKey("room_types.id"))
+    room_type_id = Column(Integer, ForeignKey("room_types.id"), nullable=True)
     room_type = relationship("RoomType", back_populates="rooms")
     schedules = relationship("Schedule", back_populates="room")
 

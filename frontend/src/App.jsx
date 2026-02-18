@@ -66,6 +66,10 @@ export default function App() {
     const [userRole, setUserRole] = useState('registro'); // 'registro' | 'director'
     const [selectedFile, setSelectedFile] = useState(null);
     const [teachers, setTeachers] = useState([]);
+    const [rooms, setRooms] = useState([]);
+    const [selectedRoomFile, setSelectedRoomFile] = useState(null);
+    const [showCreateRoom, setShowCreateRoom] = useState(false);
+    const [newRoom, setNewRoom] = useState({ code: '', name: '', capacity: '' });
 
     const fetchTeachers = async () => {
         try {
@@ -76,9 +80,21 @@ export default function App() {
         }
     };
 
+    const fetchRooms = async () => {
+        try {
+            const res = await axios.get('/api/rooms/');
+            setRooms(res.data);
+        } catch (err) {
+            console.error('Error fetching rooms:', err);
+        }
+    };
+
     useEffect(() => {
         if (activeTab === 'teachers') {
             fetchTeachers();
+        }
+        if (activeTab === 'rooms') {
+            fetchRooms();
         }
     }, [activeTab]);
     const [formData, setFormData] = useState({
@@ -340,10 +356,205 @@ export default function App() {
                         <p>Administración de currícula y cupos por carrera.</p>
                     </div>
                 ) : activeTab === 'rooms' ? (
-                    <div className="glass p-8 text-center text-slate-400">
-                        <DoorOpen size={48} className="mx-auto mb-4 opacity-20" />
-                        <h3 className="text-xl font-bold text-white">Inventario de Salas</h3>
-                        <p>Gestión de laboratorios y aulas teóricas.</p>
+                    <div className="flex flex-col gap-6">
+                        <div className="flex justify-between items-end">
+                            <div>
+                                <h2 className="text-3xl font-bold">Módulo de Salas</h2>
+                                <p className="text-slate-400 mt-1">Gestión de salas, laboratorios y aulas</p>
+                            </div>
+                            <button
+                                onClick={() => setShowCreateRoom(!showCreateRoom)}
+                                style={{
+                                    backgroundColor: '#2563eb',
+                                    color: '#fff',
+                                    padding: '10px 20px',
+                                    borderRadius: '10px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    fontWeight: 600,
+                                    border: 'none',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <Plus size={18} />
+                                {showCreateRoom ? 'Cancelar' : 'Crear Sala'}
+                            </button>
+                        </div>
+
+                        {/* Manual Creation */}
+                        {showCreateRoom && (
+                            <div className="glass p-6">
+                                <h3 className="text-lg font-bold mb-4">Crear Sala Manualmente</h3>
+                                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <label className="text-slate-400 text-xs">Código</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Ej: LAB-101"
+                                            value={newRoom.code}
+                                            onChange={(e) => setNewRoom({ ...newRoom, code: e.target.value })}
+                                            style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '10px 14px', color: '#e2e8f0', outline: 'none', width: '160px' }}
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <label className="text-slate-400 text-xs">Nombre</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Ej: Laboratorio Informática"
+                                            value={newRoom.name}
+                                            onChange={(e) => setNewRoom({ ...newRoom, name: e.target.value })}
+                                            style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '10px 14px', color: '#e2e8f0', outline: 'none', width: '260px' }}
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <label className="text-slate-400 text-xs">Capacidad</label>
+                                        <input
+                                            type="number"
+                                            placeholder="Ej: 40"
+                                            value={newRoom.capacity}
+                                            onChange={(e) => setNewRoom({ ...newRoom, capacity: e.target.value })}
+                                            style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '10px 14px', color: '#e2e8f0', outline: 'none', width: '100px' }}
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            if (!newRoom.code || !newRoom.name || !newRoom.capacity) {
+                                                addNotification('Completa todos los campos', 'error');
+                                                return;
+                                            }
+                                            try {
+                                                await axios.post('/api/rooms/', {
+                                                    code: newRoom.code,
+                                                    name: newRoom.name,
+                                                    capacity: parseInt(newRoom.capacity)
+                                                });
+                                                addNotification('Sala creada con éxito', 'success');
+                                                setNewRoom({ code: '', name: '', capacity: '' });
+                                                setShowCreateRoom(false);
+                                                fetchRooms();
+                                            } catch (err) {
+                                                addNotification(err.response?.data?.detail || 'Error al crear sala', 'error');
+                                            }
+                                        }}
+                                        style={{
+                                            backgroundColor: '#059669',
+                                            color: '#fff',
+                                            padding: '10px 20px',
+                                            borderRadius: '8px',
+                                            fontWeight: 700,
+                                            border: 'none',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Guardar
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Excel Upload */}
+                        <div className="glass p-6">
+                            <h3 className="text-lg font-bold mb-4">Importar Salas desde Excel</h3>
+                            <p className="text-slate-400 text-sm mb-4">
+                                El archivo debe tener tres columnas: <strong>CODSALA</strong>, <strong>NOMBRE</strong> y <strong>CAPACIDAD</strong>.
+                            </p>
+                            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                <input
+                                    type="file"
+                                    accept=".xlsx,.xls"
+                                    id="room-excel-upload"
+                                    style={{ display: 'none' }}
+                                    onChange={(e) => {
+                                        if (e.target.files[0]) setSelectedRoomFile(e.target.files[0]);
+                                    }}
+                                />
+                                <label
+                                    htmlFor="room-excel-upload"
+                                    style={{
+                                        backgroundColor: '#1e293b',
+                                        color: '#94a3b8',
+                                        padding: '12px 20px',
+                                        borderRadius: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        border: '1px solid #475569'
+                                    }}
+                                >
+                                    <FileText size={18} />
+                                    {selectedRoomFile ? selectedRoomFile.name : 'Seleccionar Archivo'}
+                                </label>
+                                <button
+                                    disabled={!selectedRoomFile}
+                                    onClick={async () => {
+                                        if (!selectedRoomFile) return;
+                                        const formData = new FormData();
+                                        formData.append('file', selectedRoomFile);
+                                        try {
+                                            const res = await axios.post('/api/rooms/upload-excel/', formData, {
+                                                headers: { 'Content-Type': 'multipart/form-data' }
+                                            });
+                                            addNotification(`✅ ${res.data.created} sala(s) importadas, ${res.data.skipped} omitidas.`, 'success');
+                                            setSelectedRoomFile(null);
+                                            document.getElementById('room-excel-upload').value = '';
+                                            fetchRooms();
+                                        } catch (err) {
+                                            addNotification(err.response?.data?.detail || 'Error al importar', 'error');
+                                        }
+                                    }}
+                                    style={{
+                                        backgroundColor: selectedRoomFile ? '#059669' : '#1e293b',
+                                        color: '#ffffff',
+                                        padding: '12px 24px',
+                                        borderRadius: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        fontWeight: 700,
+                                        border: 'none',
+                                        cursor: selectedRoomFile ? 'pointer' : 'not-allowed',
+                                        opacity: selectedRoomFile ? 1 : 0.4
+                                    }}
+                                >
+                                    <Plus size={20} />
+                                    Subir Salas
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Room List */}
+                        <div className="glass p-6">
+                            <h3 className="text-lg font-bold mb-4">Listado de Salas</h3>
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="text-slate-500 text-sm border-b border-slate-800">
+                                        <th className="pb-4 font-medium">Código</th>
+                                        <th className="pb-4 font-medium">Nombre</th>
+                                        <th className="pb-4 font-medium">Capacidad</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="text-sm">
+                                    {rooms.length === 0 ? (
+                                        <tr className="border-b border-slate-800/50">
+                                            <td className="py-6 text-center text-slate-500" colSpan="3">
+                                                No hay salas registradas.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        rooms.map((r) => (
+                                            <tr key={r.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
+                                                <td className="py-3 font-mono text-blue-400">{r.code}</td>
+                                                <td className="py-3 font-semibold">{r.name}</td>
+                                                <td className="py-3 text-slate-400">{r.capacity}</td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 ) : activeTab === 'schedules' ? (
                     <div className="glass p-8 text-center text-slate-400">

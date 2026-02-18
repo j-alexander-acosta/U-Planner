@@ -50,9 +50,10 @@ class RoomType(RoomTypeBase):
         from_attributes = True
 
 class RoomBase(BaseModel):
+    code: str
     name: str
     capacity: int
-    room_type_id: int
+    room_type_id: Optional[int] = None
 
 class Room(RoomBase):
     id: int
