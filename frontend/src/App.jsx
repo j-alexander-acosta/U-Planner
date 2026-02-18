@@ -64,6 +64,7 @@ export default function App() {
     const [notifications, setNotifications] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [userRole, setUserRole] = useState('registro'); // 'registro' | 'director'
+    const [selectedFile, setSelectedFile] = useState(null);
     const [formData, setFormData] = useState({
         teacher_id: '',
         room_id: '',
@@ -228,14 +229,29 @@ export default function App() {
                             <p className="text-slate-400 text-sm mb-4">
                                 El archivo debe tener dos columnas: <strong>Nombre Completo</strong> y <strong>RUT</strong>. La primera fila se considera encabezado.
                             </p>
-                            <div className="flex gap-4 items-center">
+                            <div className="flex gap-4 items-center flex-wrap">
                                 <input
                                     type="file"
                                     accept=".xlsx,.xls"
                                     id="excel-upload"
-                                    className="hidden"
-                                    onChange={async (e) => {
-                                        const selectedFile = e.target.files[0];
+                                    style={{ display: 'none' }}
+                                    onChange={(e) => {
+                                        if (e.target.files[0]) {
+                                            setSelectedFile(e.target.files[0]);
+                                        }
+                                    }}
+                                />
+                                <label
+                                    htmlFor="excel-upload"
+                                    className="bg-slate-700 hover:bg-slate-600 text-white px-5 py-3 rounded-lg flex items-center gap-2 font-semibold cursor-pointer transition-all border border-slate-600"
+                                >
+                                    <FileText size={18} />
+                                    {selectedFile ? selectedFile.name : 'Seleccionar Archivo'}
+                                </label>
+
+                                <button
+                                    disabled={!selectedFile}
+                                    onClick={async () => {
                                         if (!selectedFile) return;
                                         const formData = new FormData();
                                         formData.append('file', selectedFile);
@@ -243,20 +259,18 @@ export default function App() {
                                             const res = await axios.post('/api/teachers/upload-excel/', formData, {
                                                 headers: { 'Content-Type': 'multipart/form-data' }
                                             });
-                                            setNotification({ message: `${res.data.created} docente(s) importados, ${res.data.skipped} omitidos.`, type: 'success' });
+                                            addNotification(`✅ ${res.data.created} docente(s) importados, ${res.data.skipped} omitidos.`, 'success');
+                                            setSelectedFile(null);
+                                            document.getElementById('excel-upload').value = '';
                                         } catch (err) {
-                                            setNotification({ message: err.response?.data?.detail || 'Error al importar', type: 'error' });
+                                            addNotification(err.response?.data?.detail || 'Error al importar', 'error');
                                         }
-                                        e.target.value = '';
                                     }}
-                                />
-                                <label
-                                    htmlFor="excel-upload"
-                                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-bold cursor-pointer transition-all"
+                                    className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg flex items-center gap-2 font-bold transition-all"
                                 >
                                     <Plus size={20} />
-                                    Seleccionar Archivo Excel
-                                </label>
+                                    Subir Docentes
+                                </button>
                             </div>
                         </div>
 
