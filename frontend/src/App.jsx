@@ -266,7 +266,20 @@ export default function App() {
                                             addNotification(err.response?.data?.detail || 'Error al importar', 'error');
                                         }
                                     }}
-                                    className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg flex items-center gap-2 font-bold transition-all"
+                                    style={{
+                                        backgroundColor: selectedFile ? '#059669' : '#1e293b',
+                                        color: '#ffffff',
+                                        padding: '12px 24px',
+                                        borderRadius: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        fontWeight: 700,
+                                        border: 'none',
+                                        cursor: selectedFile ? 'pointer' : 'not-allowed',
+                                        opacity: selectedFile ? 1 : 0.4,
+                                        transition: 'all 0.2s'
+                                    }}
                                 >
                                     <Plus size={20} />
                                     Subir Docentes
