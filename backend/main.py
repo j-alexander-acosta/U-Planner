@@ -21,6 +21,18 @@ def read_root():
 def read_teachers(db: Session = Depends(get_db)):
     return db.query(models.Teacher).all()
 
+@app.post("/teachers/", response_model=schemas.Teacher)
+def create_teacher(teacher: schemas.TeacherBase, db: Session = Depends(get_db)):
+    db_teacher = models.Teacher(full_name=teacher.full_name, rut=teacher.rut)
+    db.add(db_teacher)
+    try:
+        db.commit()
+        db.refresh(db_teacher)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Error: {str(e)}")
+    return db_teacher
+
 @app.put("/teachers/{teacher_id}", response_model=schemas.Teacher)
 def update_teacher(teacher_id: int, teacher: schemas.TeacherBase, db: Session = Depends(get_db)):
     db_teacher = db.query(models.Teacher).filter(models.Teacher.id == teacher_id).first()

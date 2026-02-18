@@ -74,6 +74,8 @@ export default function App() {
     const [newRoom, setNewRoom] = useState({ code: '', name: '', capacity: '' });
     const [editingRoom, setEditingRoom] = useState(null);
     const [editingTeacher, setEditingTeacher] = useState(null);
+    const [showCreateTeacher, setShowCreateTeacher] = useState(false);
+    const [newTeacher, setNewTeacher] = useState({ full_name: '', rut: '' });
 
     const fetchTeachers = async () => {
         try {
@@ -257,7 +259,85 @@ export default function App() {
                                 <h2 className="text-3xl font-bold">Módulo de Docentes</h2>
                                 <p className="text-slate-400 mt-1">Gestión y carga masiva de la plantilla académica</p>
                             </div>
+                            <button
+                                onClick={() => setShowCreateTeacher(!showCreateTeacher)}
+                                style={{
+                                    backgroundColor: '#2563eb',
+                                    color: '#fff',
+                                    padding: '10px 20px',
+                                    borderRadius: '10px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    fontWeight: 600,
+                                    border: 'none',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <Plus size={18} />
+                                {showCreateTeacher ? 'Cancelar' : 'Crear Docente'}
+                            </button>
                         </div>
+
+                        {/* Manual Creation */}
+                        {showCreateTeacher && (
+                            <div className="glass p-6">
+                                <h3 className="text-lg font-bold mb-4">Crear Docente Manualmente</h3>
+                                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <label className="text-slate-400 text-xs">Nombre Completo</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Ej: Juan Pérez López"
+                                            value={newTeacher.full_name}
+                                            onChange={(e) => setNewTeacher({ ...newTeacher, full_name: e.target.value })}
+                                            style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '10px 14px', color: '#e2e8f0', outline: 'none', width: '300px' }}
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <label className="text-slate-400 text-xs">RUT</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Ej: 12345678-9"
+                                            value={newTeacher.rut}
+                                            onChange={(e) => setNewTeacher({ ...newTeacher, rut: e.target.value })}
+                                            style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '10px 14px', color: '#e2e8f0', outline: 'none', width: '160px' }}
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            if (!newTeacher.full_name || !newTeacher.rut) {
+                                                addNotification('Completa todos los campos', 'error');
+                                                return;
+                                            }
+                                            try {
+                                                await axios.post('/api/teachers/', {
+                                                    full_name: newTeacher.full_name,
+                                                    rut: newTeacher.rut
+                                                });
+                                                addNotification('Docente creado con éxito', 'success');
+                                                setNewTeacher({ full_name: '', rut: '' });
+                                                setShowCreateTeacher(false);
+                                                fetchTeachers();
+                                            } catch (err) {
+                                                addNotification(err.response?.data?.detail || 'Error al crear docente', 'error');
+                                            }
+                                        }}
+                                        style={{
+                                            backgroundColor: '#059669',
+                                            color: '#fff',
+                                            padding: '10px 20px',
+                                            borderRadius: '8px',
+                                            fontWeight: 700,
+                                            border: 'none',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Guardar
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Upload Section */}
                         <div className="glass p-6">
