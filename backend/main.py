@@ -21,6 +21,21 @@ def read_root():
 def read_teachers(db: Session = Depends(get_db)):
     return db.query(models.Teacher).all()
 
+@app.put("/teachers/{teacher_id}", response_model=schemas.Teacher)
+def update_teacher(teacher_id: int, teacher: schemas.TeacherBase, db: Session = Depends(get_db)):
+    db_teacher = db.query(models.Teacher).filter(models.Teacher.id == teacher_id).first()
+    if not db_teacher:
+        raise HTTPException(status_code=404, detail="Docente no encontrado")
+    db_teacher.full_name = teacher.full_name
+    db_teacher.rut = teacher.rut
+    try:
+        db.commit()
+        db.refresh(db_teacher)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Error: {str(e)}")
+    return db_teacher
+
 @app.post("/teachers/upload-excel/")
 async def upload_teachers_excel(file: UploadFile = File(...), db: Session = Depends(get_db)):
     if not file.filename.endswith((".xlsx", ".xls")):

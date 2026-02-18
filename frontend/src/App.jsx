@@ -73,6 +73,7 @@ export default function App() {
     const [showCreateRoom, setShowCreateRoom] = useState(false);
     const [newRoom, setNewRoom] = useState({ code: '', name: '', capacity: '' });
     const [editingRoom, setEditingRoom] = useState(null);
+    const [editingTeacher, setEditingTeacher] = useState(null);
 
     const fetchTeachers = async () => {
         try {
@@ -331,20 +332,78 @@ export default function App() {
                                     <tr className="text-slate-500 text-sm border-b border-slate-800">
                                         <th className="pb-4 font-medium">Nombre Completo</th>
                                         <th className="pb-4 font-medium">RUT</th>
+                                        <th className="pb-4 font-medium text-right">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-sm">
                                     {teachers.length === 0 ? (
                                         <tr className="border-b border-slate-800/50">
-                                            <td className="py-6 text-center text-slate-500" colSpan="2">
+                                            <td className="py-6 text-center text-slate-500" colSpan="3">
                                                 No hay docentes registrados. Importe un archivo Excel.
                                             </td>
                                         </tr>
                                     ) : (
                                         teachers.map((t) => (
                                             <tr key={t.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
-                                                <td className="py-3 font-semibold">{t.full_name}</td>
-                                                <td className="py-3 text-slate-400">{t.rut}</td>
+                                                {editingTeacher?.id === t.id ? (
+                                                    <>
+                                                        <td className="py-2">
+                                                            <input
+                                                                value={editingTeacher.full_name}
+                                                                onChange={(e) => setEditingTeacher({ ...editingTeacher, full_name: e.target.value })}
+                                                                style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '6px 10px', color: '#e2e8f0', outline: 'none', width: '300px' }}
+                                                            />
+                                                        </td>
+                                                        <td className="py-2">
+                                                            <input
+                                                                value={editingTeacher.rut}
+                                                                onChange={(e) => setEditingTeacher({ ...editingTeacher, rut: e.target.value })}
+                                                                style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '6px 10px', color: '#e2e8f0', outline: 'none', width: '140px' }}
+                                                            />
+                                                        </td>
+                                                        <td className="py-2 text-right">
+                                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        try {
+                                                                            await axios.put(`/api/teachers/${editingTeacher.id}`, {
+                                                                                full_name: editingTeacher.full_name,
+                                                                                rut: editingTeacher.rut
+                                                                            });
+                                                                            addNotification('Docente actualizado', 'success');
+                                                                            setEditingTeacher(null);
+                                                                            fetchTeachers();
+                                                                        } catch (err) {
+                                                                            addNotification(err.response?.data?.detail || 'Error al actualizar', 'error');
+                                                                        }
+                                                                    }}
+                                                                    style={{ backgroundColor: '#059669', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                                                >
+                                                                    <Check size={14} /> Guardar
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setEditingTeacher(null)}
+                                                                    style={{ backgroundColor: '#475569', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}
+                                                                >
+                                                                    <X size={14} />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <td className="py-3 font-semibold">{t.full_name}</td>
+                                                        <td className="py-3 text-slate-400">{t.rut}</td>
+                                                        <td className="py-3 text-right">
+                                                            <button
+                                                                onClick={() => setEditingTeacher({ id: t.id, full_name: t.full_name, rut: t.rut })}
+                                                                style={{ backgroundColor: 'transparent', color: '#94a3b8', border: '1px solid #334155', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}
+                                                            >
+                                                                <Pencil size={14} /> Editar
+                                                            </button>
+                                                        </td>
+                                                    </>
+                                                )}
                                             </tr>
                                         ))
                                     )}
