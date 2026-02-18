@@ -4,8 +4,8 @@ from typing import List
 import openpyxl
 import io
 
-from . import models, database, schemas, crud
-from .database import engine, get_db
+import models, database, schemas, crud
+from database import engine, get_db
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)

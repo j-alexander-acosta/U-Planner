@@ -243,7 +243,7 @@ export default function App() {
                                 />
                                 <label
                                     htmlFor="excel-upload"
-                                    className="bg-slate-700 hover:bg-slate-600 text-white px-5 py-3 rounded-lg flex items-center gap-2 font-semibold cursor-pointer transition-all border border-slate-600"
+                                    className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-3 rounded-lg flex items-center gap-2 font-semibold cursor-pointer transition-all border border-slate-600"
                                 >
                                     <FileText size={18} />
                                     {selectedFile ? selectedFile.name : 'Seleccionar Archivo'}

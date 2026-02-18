@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from . import models, schemas
+import models, schemas
 
 def validate_schedule(db: Session, schedule: schemas.ScheduleBase):
     # 1. Fetch related entities
