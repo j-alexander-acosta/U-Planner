@@ -33,6 +33,7 @@ async def upload_teachers_excel(file: UploadFile = File(...), db: Session = Depe
     created = 0
     skipped = 0
     errors = []
+    seen_ruts = set()
     
     for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
         if not row or len(row) < 2:
@@ -41,11 +42,16 @@ async def upload_teachers_excel(file: UploadFile = File(...), db: Session = Depe
         full_name = str(row[0]).strip() if row[0] else None
         rut = str(row[1]).strip() if row[1] else None
         
-        if not full_name or not rut:
-            errors.append(f"Fila {row_idx}: nombre o RUT vacío")
+        if not full_name or not rut or full_name == "None" or rut == "None":
             continue
         
-        # Check if RUT already exists
+        # Skip duplicates within the same file
+        if rut in seen_ruts:
+            skipped += 1
+            continue
+        seen_ruts.add(rut)
+        
+        # Check if RUT already exists in DB
         existing = db.query(models.Teacher).filter(models.Teacher.rut == rut).first()
         if existing:
             skipped += 1
@@ -55,10 +61,14 @@ async def upload_teachers_excel(file: UploadFile = File(...), db: Session = Depe
         db.add(teacher)
         created += 1
     
-    db.commit()
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al guardar en la base de datos: {str(e)}")
     
     return {
-        "message": f"Importación completada",
+        "message": "Importación completada",
         "created": created,
         "skipped": skipped,
         "errors": errors
