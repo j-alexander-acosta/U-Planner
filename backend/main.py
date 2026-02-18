@@ -110,6 +110,22 @@ def create_room(room: schemas.RoomBase, db: Session = Depends(get_db)):
 def read_rooms(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return db.query(models.Room).offset(skip).limit(limit).all()
 
+@app.put("/rooms/{room_id}", response_model=schemas.Room)
+def update_room(room_id: int, room: schemas.RoomBase, db: Session = Depends(get_db)):
+    db_room = db.query(models.Room).filter(models.Room.id == room_id).first()
+    if not db_room:
+        raise HTTPException(status_code=404, detail="Sala no encontrada")
+    db_room.code = room.code
+    db_room.name = room.name
+    db_room.capacity = room.capacity
+    try:
+        db.commit()
+        db.refresh(db_room)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Error: {str(e)}")
+    return db_room
+
 @app.post("/rooms/upload-excel/")
 async def upload_rooms_excel(file: UploadFile = File(...), db: Session = Depends(get_db)):
     if not file.filename.endswith((".xlsx", ".xls")):

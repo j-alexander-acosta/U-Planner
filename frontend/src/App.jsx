@@ -12,7 +12,9 @@ import {
     AlertCircle,
     CheckCircle2,
     X,
-    FileText
+    FileText,
+    Pencil,
+    Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -70,6 +72,7 @@ export default function App() {
     const [selectedRoomFile, setSelectedRoomFile] = useState(null);
     const [showCreateRoom, setShowCreateRoom] = useState(false);
     const [newRoom, setNewRoom] = useState({ code: '', name: '', capacity: '' });
+    const [editingRoom, setEditingRoom] = useState(null);
 
     const fetchTeachers = async () => {
         try {
@@ -534,21 +537,88 @@ export default function App() {
                                         <th className="pb-4 font-medium">Código</th>
                                         <th className="pb-4 font-medium">Nombre</th>
                                         <th className="pb-4 font-medium">Capacidad</th>
+                                        <th className="pb-4 font-medium text-right">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-sm">
                                     {rooms.length === 0 ? (
                                         <tr className="border-b border-slate-800/50">
-                                            <td className="py-6 text-center text-slate-500" colSpan="3">
+                                            <td className="py-6 text-center text-slate-500" colSpan="4">
                                                 No hay salas registradas.
                                             </td>
                                         </tr>
                                     ) : (
                                         rooms.map((r) => (
                                             <tr key={r.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
-                                                <td className="py-3 font-mono text-blue-400">{r.code}</td>
-                                                <td className="py-3 font-semibold">{r.name}</td>
-                                                <td className="py-3 text-slate-400">{r.capacity}</td>
+                                                {editingRoom?.id === r.id ? (
+                                                    <>
+                                                        <td className="py-2">
+                                                            <input
+                                                                value={editingRoom.code}
+                                                                onChange={(e) => setEditingRoom({ ...editingRoom, code: e.target.value })}
+                                                                style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '6px 10px', color: '#e2e8f0', outline: 'none', width: '120px' }}
+                                                            />
+                                                        </td>
+                                                        <td className="py-2">
+                                                            <input
+                                                                value={editingRoom.name}
+                                                                onChange={(e) => setEditingRoom({ ...editingRoom, name: e.target.value })}
+                                                                style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '6px 10px', color: '#e2e8f0', outline: 'none', width: '220px' }}
+                                                            />
+                                                        </td>
+                                                        <td className="py-2">
+                                                            <input
+                                                                type="number"
+                                                                value={editingRoom.capacity}
+                                                                onChange={(e) => setEditingRoom({ ...editingRoom, capacity: e.target.value })}
+                                                                style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '6px 10px', color: '#e2e8f0', outline: 'none', width: '80px' }}
+                                                            />
+                                                        </td>
+                                                        <td className="py-2 text-right">
+                                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        try {
+                                                                            await axios.put(`/api/rooms/${editingRoom.id}`, {
+                                                                                code: editingRoom.code,
+                                                                                name: editingRoom.name,
+                                                                                capacity: parseInt(editingRoom.capacity)
+                                                                            });
+                                                                            addNotification('Sala actualizada', 'success');
+                                                                            setEditingRoom(null);
+                                                                            fetchRooms();
+                                                                        } catch (err) {
+                                                                            addNotification(err.response?.data?.detail || 'Error al actualizar', 'error');
+                                                                        }
+                                                                    }}
+                                                                    style={{ backgroundColor: '#059669', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                                                >
+                                                                    <Check size={14} /> Guardar
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setEditingRoom(null)}
+                                                                    style={{ backgroundColor: '#475569', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}
+                                                                >
+                                                                    <X size={14} />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <td className="py-3 font-mono text-blue-400">{r.code}</td>
+                                                        <td className="py-3 font-semibold">{r.name}</td>
+                                                        <td className="py-3 text-slate-400">{r.capacity}</td>
+                                                        <td className="py-3 text-right">
+                                                            <button
+                                                                onClick={() => setEditingRoom({ id: r.id, code: r.code, name: r.name, capacity: r.capacity })}
+                                                                style={{ backgroundColor: 'transparent', color: '#94a3b8', border: '1px solid #334155', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}
+                                                            >
+                                                                <Pencil size={14} /> Editar
+                                                            </button>
+                                                        </td>
+                                                    </>
+                                                )}
                                             </tr>
                                         ))
                                     )}
