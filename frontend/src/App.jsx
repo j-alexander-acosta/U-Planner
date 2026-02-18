@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     LayoutDashboard,
     Users,
@@ -65,6 +65,22 @@ export default function App() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [userRole, setUserRole] = useState('registro'); // 'registro' | 'director'
     const [selectedFile, setSelectedFile] = useState(null);
+    const [teachers, setTeachers] = useState([]);
+
+    const fetchTeachers = async () => {
+        try {
+            const res = await axios.get('/api/teachers/');
+            setTeachers(res.data);
+        } catch (err) {
+            console.error('Error fetching teachers:', err);
+        }
+    };
+
+    useEffect(() => {
+        if (activeTab === 'teachers') {
+            fetchTeachers();
+        }
+    }, [activeTab]);
     const [formData, setFormData] = useState({
         teacher_id: '',
         room_id: '',
@@ -262,6 +278,7 @@ export default function App() {
                                             addNotification(`✅ ${res.data.created} docente(s) importados, ${res.data.skipped} omitidos.`, 'success');
                                             setSelectedFile(null);
                                             document.getElementById('excel-upload').value = '';
+                                            fetchTeachers();
                                         } catch (err) {
                                             addNotification(err.response?.data?.detail || 'Error al importar', 'error');
                                         }
@@ -298,11 +315,20 @@ export default function App() {
                                     </tr>
                                 </thead>
                                 <tbody className="text-sm">
-                                    <tr className="border-b border-slate-800/50">
-                                        <td className="py-6 text-center text-slate-500" colSpan="2">
-                                            Importe un archivo Excel para visualizar los docentes aquí.
-                                        </td>
-                                    </tr>
+                                    {teachers.length === 0 ? (
+                                        <tr className="border-b border-slate-800/50">
+                                            <td className="py-6 text-center text-slate-500" colSpan="2">
+                                                No hay docentes registrados. Importe un archivo Excel.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        teachers.map((t) => (
+                                            <tr key={t.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
+                                                <td className="py-3 font-semibold">{t.full_name}</td>
+                                                <td className="py-3 text-slate-400">{t.rut}</td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>
