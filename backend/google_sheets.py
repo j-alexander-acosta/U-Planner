@@ -56,7 +56,16 @@ class GoogleSheetsService:
         except Exception as e:
             print(f"Warning: Could not sync time modules from MODULOS sheet: {e}")
 
+        # 7. Sync Academic Schedules (PRESENCIAL)
+        try:
+            ws_presencial = sh.worksheet("PRESENCIAL")
+            rows_presencial = ws_presencial.get_all_records()
+            self._sync_academic_schedules(db, rows_presencial)
+        except Exception as e:
+            print(f"Warning: Could not sync academic schedules from PRESENCIAL sheet: {e}")
+
         return {"message": "Sincronización completada exitosamente", "rows_processed": len(rows)}
+
 
     def _sync_faculties(self, db: Session, rows: list):
         """
@@ -318,5 +327,28 @@ class GoogleSheetsService:
             else:
                 db.add(models.TimeModule(mod_hor=mod_hor, **data))
         db.commit()
+
+    def _sync_academic_schedules(self, db: Session, rows: list):
+        """
+        Syncs Academic Schedules from 'PRESENCIAL' sheet.
+        """
+        db.query(models.AcademicSchedule).delete()
+        
+        for row in rows:
+            carrera = str(row.get('CARRERA', '')).strip()
+            if not carrera: continue
+            
+            new_sched = models.AcademicSchedule(
+                carrera=carrera,
+                nivel=str(row.get('NIVEL', '')).strip(),
+                modulo_horario=str(row.get('MODULO Y HORARIO', '')).strip(),
+                seccion=str(row.get('SECCION', '')).strip(),
+                asignatura=str(row.get('ASIGNATURA', '')).strip(),
+                docente=str(row.get('DOCENTE', '')).strip()
+            )
+            db.add(new_sched)
+            
+        db.commit()
+
 
 

@@ -77,6 +77,7 @@ export default function App() {
     const [subjects, setSubjects] = useState([]);
     const [days, setDays] = useState([]);
     const [timeModules, setTimeModules] = useState([]);
+    const [academicSchedules, setAcademicSchedules] = useState([]);
     const [isSyncing, setIsSyncing] = useState(false);
 
     const fetchTeachers = async () => {
@@ -116,6 +117,25 @@ export default function App() {
             return roomValue.includes(searchTerm);
         });
     });
+
+    const [academicScheduleColumnFilters, setAcademicScheduleColumnFilters] = useState({
+        carrera: '',
+        nivel: '',
+        modulo_horario: '',
+        seccion: '',
+        asignatura: '',
+        docente: ''
+    });
+
+    const filteredAcademicSchedules = academicSchedules.filter(sched => {
+        return Object.entries(academicScheduleColumnFilters).every(([key, value]) => {
+            if (!value) return true;
+            const searchTerm = value.toLowerCase();
+            const schedValue = String(sched[key] || '').toLowerCase();
+            return schedValue.includes(searchTerm);
+        });
+    });
+
 
 
 
@@ -172,7 +192,20 @@ export default function App() {
         if (activeTab === 'timeModules') {
             fetchTimeModules();
         }
+        if (activeTab === 'schedules') {
+            fetchAcademicSchedules();
+        }
     }, [activeTab]);
+
+    const fetchAcademicSchedules = async () => {
+        try {
+            const res = await axios.get('/api/academic-schedules/');
+            setAcademicSchedules(res.data);
+        } catch (err) {
+            console.error('Error fetching academic schedules:', err);
+        }
+    };
+
 
 
     const [columnFilters, setColumnFilters] = useState({
@@ -260,6 +293,8 @@ export default function App() {
             if (activeTab === 'subjects') fetchSubjects();
             if (activeTab === 'days') fetchDays();
             if (activeTab === 'timeModules') fetchTimeModules();
+            if (activeTab === 'schedules') fetchAcademicSchedules();
+
         } catch (error) {
             console.error(error);
             addNotification('Error al sincronizar con Google Sheets', 'error');
@@ -762,10 +797,115 @@ export default function App() {
                         </div>
                     </div>
                 ) : activeTab === 'schedules' ? (
-                    <div className="glass p-8 text-center text-slate-400">
-                        <Calendar size={48} className="mx-auto mb-4 opacity-20" />
-                        <h3 className="text-xl font-bold text-white">Visor de Horarios</h3>
-                        <p>Vista completa de la programación académica.</p>
+                    <div className="flex flex-col gap-6">
+                        <div className="flex justify-between items-end">
+                            <div>
+                                <h2 className="text-3xl font-bold">Visor de Horarios</h2>
+                                <p className="text-slate-400 mt-1">Programación académica presencial</p>
+                            </div>
+                        </div>
+
+                        <div className="glass p-6 overflow-x-auto">
+                            <h3 className="text-lg font-bold mb-4">Planificación Presencial</h3>
+                            <table className="w-full text-left min-w-[1000px]">
+                                <thead>
+                                    <tr className="text-slate-500 text-sm border-b border-slate-800">
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>CARRERA</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs w-full focus:outline-none focus:border-blue-500"
+                                                    value={academicScheduleColumnFilters.carrera}
+                                                    onChange={(e) => setAcademicScheduleColumnFilters({ ...academicScheduleColumnFilters, carrera: e.target.value })}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>NIVEL</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs w-full focus:outline-none focus:border-blue-500"
+                                                    value={academicScheduleColumnFilters.nivel}
+                                                    onChange={(e) => setAcademicScheduleColumnFilters({ ...academicScheduleColumnFilters, nivel: e.target.value })}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>MÓDULO Y HORARIO</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs w-full focus:outline-none focus:border-blue-500"
+                                                    value={academicScheduleColumnFilters.modulo_horario}
+                                                    onChange={(e) => setAcademicScheduleColumnFilters({ ...academicScheduleColumnFilters, modulo_horario: e.target.value })}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>SECCIÓN</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs w-full focus:outline-none focus:border-blue-500"
+                                                    value={academicScheduleColumnFilters.seccion}
+                                                    onChange={(e) => setAcademicScheduleColumnFilters({ ...academicScheduleColumnFilters, seccion: e.target.value })}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>ASIGNATURA</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs w-full focus:outline-none focus:border-blue-500"
+                                                    value={academicScheduleColumnFilters.asignatura}
+                                                    onChange={(e) => setAcademicScheduleColumnFilters({ ...academicScheduleColumnFilters, asignatura: e.target.value })}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>DOCENTE</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs w-full focus:outline-none focus:border-blue-500"
+                                                    value={academicScheduleColumnFilters.docente}
+                                                    onChange={(e) => setAcademicScheduleColumnFilters({ ...academicScheduleColumnFilters, docente: e.target.value })}
+                                                />
+                                            </div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="text-sm">
+                                    {filteredAcademicSchedules.length === 0 ? (
+                                        <tr className="border-b border-slate-800/50">
+                                            <td className="py-6 text-center text-slate-500" colSpan="6">
+                                                No hay horarios registrados.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredAcademicSchedules.map((s) => (
+                                            <tr key={s.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
+                                                <td className="py-3 text-xs text-blue-400 font-mono">{s.carrera}</td>
+                                                <td className="py-3 text-center">{s.nivel}</td>
+                                                <td className="py-3 text-xs font-mono">{s.modulo_horario}</td>
+                                                <td className="py-3 text-center font-bold">{s.seccion}</td>
+                                                <td className="py-3">{s.asignatura}</td>
+                                                <td className="py-3 italic text-slate-300">{s.docente}</td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 ) : activeTab === 'settings' ? (
                     <div className="flex flex-col gap-6">

@@ -119,3 +119,16 @@ class TimeModule(TimeModuleBase):
     id: int
     class Config:
         from_attributes = True
+
+class AcademicScheduleBase(BaseModel):
+    carrera: Optional[str] = None
+    nivel: Optional[str] = None
+    modulo_horario: Optional[str] = None
+    seccion: Optional[str] = None
+    asignatura: Optional[str] = None
+    docente: Optional[str] = None
+
+class AcademicSchedule(AcademicScheduleBase):
+    id: int
+    class Config:
+        from_attributes = True

@@ -152,6 +152,11 @@ def read_days(db: Session = Depends(get_db)):
 def read_time_modules(db: Session = Depends(get_db)):
     return db.query(models.TimeModule).all()
 
+@app.get("/academic-schedules/", response_model=List[schemas.AcademicSchedule])
+def read_academic_schedules(db: Session = Depends(get_db)):
+    return db.query(models.AcademicSchedule).all()
+
+
 
 
 @app.put("/rooms/{room_id}", response_model=schemas.Room)

@@ -121,3 +121,13 @@ class TimeModule(Base):
     hora_final = Column(String, nullable=False)
     rango = Column(String, nullable=False)
     modulo = Column(String, nullable=False)
+
+class AcademicSchedule(Base):
+    __tablename__ = "academic_schedules"
+    id = Column(Integer, primary_key=True, index=True)
+    carrera = Column(String, nullable=True)
+    nivel = Column(String, nullable=True)
+    modulo_horario = Column(String, nullable=True) # MODULO Y HORARIO
+    seccion = Column(String, nullable=True)
+    asignatura = Column(String, nullable=True)
+    docente = Column(String, nullable=True)
