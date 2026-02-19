@@ -341,7 +341,7 @@ export default function App() {
                     />
                     <SidebarItem
                         icon={Calendar}
-                        label="Horas"
+                        label="Bloques de Horario"
                         active={activeTab === 'timeModules'}
                         onClick={() => setActiveTab('timeModules')}
                     />
@@ -722,7 +722,7 @@ export default function App() {
                     <div className="flex flex-col gap-6">
                         <div className="flex justify-between items-end">
                             <div>
-                                <h2 className="text-3xl font-bold">Módulo de Horas</h2>
+                                <h2 className="text-3xl font-bold">Módulo de Bloques de Horario</h2>
                                 <p className="text-slate-400 mt-1">Configuración de rangos horarios académicos</p>
                             </div>
                         </div>

@@ -2,13 +2,13 @@
 
 U-Planner es una plataforma integral diseñada para optimizar la planificación y gestión de horarios universitarios. Con una estética premium basada en *Glassmorphism*, el sistema permite a los administradores y directores de carrera gestionar docentes, salas, asignaturas y horarios con validaciones inteligentes en tiempo real.
 
-![Módulo de Horas](file:///Users/alexanderacosta/.gemini/antigravity/brain/b73ad9c7-4e19-4de1-8150-d4720f7720a1/horas_module_data_1771530366343.png)
+![Dashboard Preview](file:///Users/alexanderacosta/.gemini/antigravity/brain/b73ad9c7-4e19-4de1-8150-d4720f7720a1/horas_module_data_1771530366343.png)
 
 ## 🚀 Características Principales
 
-- **Sincronización con Google Sheets:** Integración directa con hojas de cálculo maestras para la gestión centralizada de Docentes, Salas, Días y Módulos Horarios.
+- **Sincronización con Google Sheets:** Integración directa con hojas de cálculo maestras para la gestión centralizada de Docentes, Salas, Días y Bloques de Horario.
 - **Validación Inteligente de Horarios:** Motor de reglas que previene choques de horarios, sobrecarga de salas, conflictos de docentes y asegura la compatibilidad de equipamiento.
-- **Filtrado Avanzado:** Sistema de filtros por columna en tiempo real para todas las tablas del sistema (Docentes, Salas, Asignaturas, Horas).
+- **Filtrado Avanzado:** Sistema de filtros por columna en tiempo real para todas las tablas del sistema (Docentes, Salas, Asignaturas, Bloques de Horario).
 - **Módulo de Reportes y Exportación:** Generación de reportes detallados por Facultad con capacidad de exportación a CSV.
 - **Interfaz Multirrol:** Vistas especializadas para Registro Académico y Directores de Carrera.
 - **Dashboard Premium:** Diseño moderno y responsivo con visualizaciones de carga académica y disponibilidad de recursos.
