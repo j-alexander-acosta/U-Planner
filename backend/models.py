@@ -75,8 +75,14 @@ class Room(Base):
 class Subject(Base):
     __tablename__ = "subjects"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    enrolled_students = Column(Integer, default=0)
+    code = Column(String, nullable=True) # CODRAMO
+    plan_year = Column(String, nullable=True) # AÑO_PLAN
+    career_code = Column(String, nullable=True) # CODCARR
+    level = Column(String, nullable=True) # NIVEL
+    name = Column(String, nullable=False) # ASIGNATURA
+    equivalent = Column(String, nullable=True) # EQUIVALENTE
+    section = Column(String, nullable=True) # SECCION
+    enrolled_students = Column(Integer, default=0) # CUPO
     required_room_type_id = Column(Integer, ForeignKey("room_types.id"))
     faculty_id = Column(Integer, ForeignKey("faculties.id"))
     

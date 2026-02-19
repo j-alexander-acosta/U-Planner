@@ -18,7 +18,7 @@ class GoogleSheetsService:
             sh = self.gc.open_by_key(SPREADSHEET_ID)
             # Assuming data is in the first worksheet or a specific named one. 
             # Based on inspection, worksheet name was "CARGA" but index 0 works too.
-            ws = sh.get_worksheet(0) 
+            ws = sh.worksheet("PRESENCIAL") 
             rows = ws.get_all_records() # Returns list of dicts with headers as keys
         except Exception as e:
             raise Exception(f"Error accessing Google Sheet: {e}")
@@ -31,6 +31,15 @@ class GoogleSheetsService:
 
         # 3. Sync Subjects (ASIGNATURA)
         self._sync_subjects(db, rows)
+
+        # 4. Sync Rooms (SALAS)
+        try:
+            ws_rooms = sh.worksheet("SALAS")
+            rows_rooms = ws_rooms.get_all_records()
+            self._sync_rooms(db, rows_rooms)
+        except Exception as e:
+            print(f"Warning: Could not sync rooms from SALAS sheet: {e}")
+
 
         return {"message": "Sincronización completada exitosamente", "rows_processed": len(rows)}
 
@@ -51,22 +60,38 @@ class GoogleSheetsService:
 
     def _sync_teachers(self, db: Session, rows: list):
         """
-        Extracts unique 'DOCENTE' values. Creates new teachers with generated RUTs if they don't exist.
+        Extracts 'CODIGO DOCENTE' and 'DOCENTE'. 
+        Upserts teachers based on 'CODIGO DOCENTE' (mapped to rut).
         """
-        unique_teachers = {row.get('DOCENTE').strip() for row in rows if row.get('DOCENTE')}
-
-        for teacher_name in unique_teachers:
-            if not teacher_name or teacher_name == "0": continue # Skip invalid names
-
-            # Try to find by name (approximate match since we don't have RUT in sheet)
-            # In a real scenario, we might want to be more careful here.
-            existing = db.query(models.Teacher).filter(models.Teacher.full_name == teacher_name).first()
+        # Dictionary to dedup teachers by RUT. Last seen name wins.
+        teachers_map = {}
+        
+        for row in rows:
+            rut_raw = row.get('CODIGO DOCENTE')
+            name_raw = row.get('DOCENTE')
             
-            if not existing:
-                # Generate a placeholder RUT
-                fake_rut = f"TEMP-{uuid.uuid4().hex[:8].upper()}"
-                new_teacher = models.Teacher(full_name=teacher_name, rut=fake_rut)
+            # Basic validation
+            if not rut_raw or str(rut_raw).strip() == "0" or not name_raw:
+                continue
+                
+            rut = str(rut_raw).strip()
+            name = str(name_raw).strip()
+            
+            teachers_map[rut] = name
+            
+        for rut, name in teachers_map.items():
+            # Try to find by RUT
+            existing = db.query(models.Teacher).filter(models.Teacher.rut == rut).first()
+            
+            if existing:
+                # Update name if changed
+                if existing.full_name != name:
+                    existing.full_name = name
+            else:
+                # Create new
+                new_teacher = models.Teacher(full_name=name, rut=rut)
                 db.add(new_teacher)
+        
         db.commit()
 
     def _sync_subjects(self, db: Session, rows: list):
@@ -87,8 +112,16 @@ class GoogleSheetsService:
         
         for row in rows:
             subject_name = row.get('ASIGNATURA')
+            subject_code = row.get('CODRAMO')
             faculty_name = row.get('CARRERA')
             cupo = row.get('CUPO')
+            
+            # New columns
+            plan_year = str(row.get('AÑO_PLAN')) if row.get('AÑO_PLAN') else None
+            career_code = str(row.get('CODCARR')) if row.get('CODCARR') else None
+            level = str(row.get('NIVEL')) if row.get('NIVEL') else None
+            equivalent = str(row.get('EQUIVALENTE')) if row.get('EQUIVALENTE') else None
+            section = str(row.get('SECCION')) if row.get('SECCION') else None
 
             if not subject_name: continue
 
@@ -97,8 +130,30 @@ class GoogleSheetsService:
             if faculty_name:
                 faculty = db.query(models.Faculty).filter(models.Faculty.name == faculty_name.strip()).first()
             
-            # Find subject by name
-            subject = db.query(models.Subject).filter(models.Subject.name == subject_name.strip()).first()
+            # Find subject logic:
+            # 1. Try to find by Code AND Section (Best match)
+            # 2. If not found, Try to find by Code AND Section IS NULL (Claim legacy record)
+            # 3. If not found, Create New.
+
+            subject = None
+            if subject_code:
+                # Search by Code + Section
+                if section:
+                    subject = db.query(models.Subject).filter(
+                        models.Subject.code == str(subject_code).strip(), 
+                        models.Subject.section == str(section).strip()
+                    ).first()
+                
+                # If not found, try to claim a record with NULL section (only if current row has a section)
+                if not subject and section:
+                    subject = db.query(models.Subject).filter(
+                        models.Subject.code == str(subject_code).strip(), 
+                        models.Subject.section == None
+                    ).first()
+            
+            # Fallback for legacy name-only match (if code is missing, unlikely)
+            if not subject and not subject_code:
+                 subject = db.query(models.Subject).filter(models.Subject.name == subject_name.strip()).first()
 
             # Parse enrolled_students (CUPO)
             try:
@@ -106,23 +161,85 @@ class GoogleSheetsService:
             except ValueError:
                 enrolled = 0
 
+            # Parse code
+            code = str(subject_code).strip() if subject_code else None
+
             if subject:
-                # Update existing
+                # Update existing (or claimed)
                 subject.enrolled_students = enrolled
+                if code: subject.code = code.strip()
+                if plan_year: subject.plan_year = str(plan_year).strip()
+                if career_code: subject.career_code = str(career_code).strip()
+                if level: subject.level = str(level).strip()
+                if equivalent: subject.equivalent = str(equivalent).strip()
+                if section: subject.section = str(section).strip()
+                if subject_name: subject.name = subject_name.strip()
+                
                 if faculty:
                     subject.faculty_id = faculty.id
             else:
                 # Create new
                 new_subject = models.Subject(
                     name=subject_name.strip(),
+                    code=code,
+                    plan_year=str(plan_year).strip() if plan_year else None,
+                    career_code=str(career_code).strip() if career_code else None,
+                    level=str(level).strip() if level else None,
+                    equivalent=str(equivalent).strip() if equivalent else None,
+                    section=str(section).strip() if section else None,
                     enrolled_students=enrolled,
                     required_room_type_id=default_room_type.id,
                     faculty_id=faculty.id if faculty else None
                 )
                 db.add(new_subject)
+                db.flush() # Ensure it's visible for next iteration match
             
             processed_subjects += 1
             
             # Commit in batches or all at once? All at once for now is fine for size.
+        
+        db.commit()
+        db.commit()
+
+    def _sync_rooms(self, db: Session, rows: list):
+        """
+        Syncs Rooms based on 'CODSALA'.
+        Maps:
+        - CODSALA -> code
+        - NOMBRE -> name
+        - CAPACIDAD -> capacity
+        """
+        rooms_map = {}
+        
+        for row in rows:
+            code_raw = row.get('CODSALA')
+            name_raw = row.get('NOMBRE')
+            capacity_raw = row.get('CAPACIDAD')
+            
+            if not code_raw or not name_raw:
+                continue
+                
+            code = str(code_raw).strip()
+            name = str(name_raw).strip()
+            try:
+                capacity = int(capacity_raw) if capacity_raw else 0
+            except ValueError:
+                capacity = 0
+            
+            rooms_map[code] = {'name': name, 'capacity': capacity}
+            
+        for code, data in rooms_map.items():
+            existing = db.query(models.Room).filter(models.Room.code == code).first()
+            
+            if existing:
+                existing.name = data['name']
+                existing.capacity = data['capacity']
+            else:
+                new_room = models.Room(
+                    code=code,
+                    name=data['name'],
+                    capacity=data['capacity']
+                )
+                db.add(new_room)
         
         db.commit()

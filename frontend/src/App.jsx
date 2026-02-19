@@ -14,7 +14,9 @@ import {
     X,
     FileText,
     Pencil,
-    Check
+    Check,
+    Filter,
+    ArrowUpDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -69,13 +71,10 @@ export default function App() {
     const [selectedFile, setSelectedFile] = useState(null);
     const [teachers, setTeachers] = useState([]);
     const [rooms, setRooms] = useState([]);
-    const [selectedRoomFile, setSelectedRoomFile] = useState(null);
-    const [showCreateRoom, setShowCreateRoom] = useState(false);
-    const [newRoom, setNewRoom] = useState({ code: '', name: '', capacity: '' });
-    const [editingRoom, setEditingRoom] = useState(null);
-    const [editingTeacher, setEditingTeacher] = useState(null);
-    const [showCreateTeacher, setShowCreateTeacher] = useState(false);
-    const [newTeacher, setNewTeacher] = useState({ full_name: '', rut: '' });
+
+
+    const [subjects, setSubjects] = useState([]);
+    const [isSyncing, setIsSyncing] = useState(false);
 
     const fetchTeachers = async () => {
         try {
@@ -86,12 +85,50 @@ export default function App() {
         }
     };
 
+    const [teacherColumnFilters, setTeacherColumnFilters] = useState({
+        rut: '',
+        full_name: ''
+    });
+
+    const filteredTeachers = teachers.filter(teacher => {
+        return Object.entries(teacherColumnFilters).every(([key, value]) => {
+            if (!value) return true;
+            const searchTerm = value.toLowerCase();
+            const teacherValue = String(teacher[key] || '').toLowerCase();
+            return teacherValue.includes(searchTerm);
+        });
+    });
+
+    const [roomColumnFilters, setRoomColumnFilters] = useState({
+        code: '',
+        name: '',
+        capacity: ''
+    });
+
+    const filteredRooms = rooms.filter(room => {
+        return Object.entries(roomColumnFilters).every(([key, value]) => {
+            if (!value) return true;
+            const searchTerm = value.toLowerCase();
+            const roomValue = String(room[key] || '').toLowerCase();
+            return roomValue.includes(searchTerm);
+        });
+    });
+
     const fetchRooms = async () => {
         try {
             const res = await axios.get('/api/rooms/');
             setRooms(res.data);
         } catch (err) {
             console.error('Error fetching rooms:', err);
+        }
+    };
+
+    const fetchSubjects = async () => {
+        try {
+            const res = await axios.get('/api/subjects/?limit=10000');
+            setSubjects(res.data);
+        } catch (err) {
+            console.error('Error fetching subjects:', err);
         }
     };
 
@@ -102,7 +139,42 @@ export default function App() {
         if (activeTab === 'rooms') {
             fetchRooms();
         }
+        if (activeTab === 'subjects') {
+            fetchSubjects();
+        }
     }, [activeTab]);
+    const [columnFilters, setColumnFilters] = useState({
+        plan_year: '',
+        career_code: '',
+        faculty: '',
+        level: '',
+        code: '',
+        name: '',
+        equivalent: '',
+        section: '',
+        enrolled_students: ''
+    });
+
+    // Derived state for Subjects
+    const filteredSubjects = subjects.filter(subject => {
+        return Object.entries(columnFilters).every(([key, value]) => {
+            if (!value) return true;
+            const searchTerm = value.toLowerCase();
+
+            let subjectValue = '';
+            if (key === 'faculty') {
+                subjectValue = subject.faculty?.name || 'General';
+            } else {
+                subjectValue = String(subject[key] || '');
+            }
+
+            return subjectValue.toLowerCase().includes(searchTerm);
+        });
+    });
+
+    const handleColumnFilterChange = (key, value) => {
+        setColumnFilters(prev => ({ ...prev, [key]: value }));
+    };
     const [formData, setFormData] = useState({
         teacher_id: '',
         room_id: '',
@@ -142,6 +214,23 @@ export default function App() {
             }
 
             addNotification(errorMsg, 'error');
+        }
+    };
+
+    const handleSyncGoogleSheets = async () => {
+        setIsSyncing(true);
+        try {
+            const res = await axios.post('/api/sync/google-sheets/');
+            addNotification(`Sincronización completada: ${res.data.rows_processed} filas procesadas`, 'success');
+            // Refresh data if we are on a relevant tab
+            if (activeTab === 'teachers') fetchTeachers();
+            if (activeTab === 'rooms') fetchRooms();
+            if (activeTab === 'subjects') fetchSubjects();
+        } catch (error) {
+            console.error(error);
+            addNotification('Error al sincronizar con Google Sheets', 'error');
+        } finally {
+            setIsSyncing(false);
         }
     };
 
@@ -219,7 +308,12 @@ export default function App() {
                 </nav>
 
                 <div className="mt-auto">
-                    <SidebarItem icon={Settings} label="Ajustes" />
+                    <SidebarItem
+                        icon={Settings}
+                        label="Ajustes"
+                        active={activeTab === 'settings'}
+                        onClick={() => setActiveTab('settings')}
+                    />
                 </div>
             </aside>
 
@@ -259,149 +353,6 @@ export default function App() {
                                 <h2 className="text-3xl font-bold">Módulo de Docentes</h2>
                                 <p className="text-slate-400 mt-1">Gestión y carga masiva de la plantilla académica</p>
                             </div>
-                            <button
-                                onClick={() => setShowCreateTeacher(!showCreateTeacher)}
-                                style={{
-                                    backgroundColor: '#2563eb',
-                                    color: '#fff',
-                                    padding: '10px 20px',
-                                    borderRadius: '10px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    fontWeight: 600,
-                                    border: 'none',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <Plus size={18} />
-                                {showCreateTeacher ? 'Cancelar' : 'Crear Docente'}
-                            </button>
-                        </div>
-
-                        {/* Manual Creation */}
-                        {showCreateTeacher && (
-                            <div className="glass p-6">
-                                <h3 className="text-lg font-bold mb-4">Crear Docente Manualmente</h3>
-                                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <label className="text-slate-400 text-xs">Nombre Completo</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Ej: Juan Pérez López"
-                                            value={newTeacher.full_name}
-                                            onChange={(e) => setNewTeacher({ ...newTeacher, full_name: e.target.value })}
-                                            style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '10px 14px', color: '#e2e8f0', outline: 'none', width: '300px' }}
-                                        />
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <label className="text-slate-400 text-xs">RUT</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Ej: 12345678-9"
-                                            value={newTeacher.rut}
-                                            onChange={(e) => setNewTeacher({ ...newTeacher, rut: e.target.value })}
-                                            style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '10px 14px', color: '#e2e8f0', outline: 'none', width: '160px' }}
-                                        />
-                                    </div>
-                                    <button
-                                        onClick={async () => {
-                                            if (!newTeacher.full_name || !newTeacher.rut) {
-                                                addNotification('Completa todos los campos', 'error');
-                                                return;
-                                            }
-                                            try {
-                                                await axios.post('/api/teachers/', {
-                                                    full_name: newTeacher.full_name,
-                                                    rut: newTeacher.rut
-                                                });
-                                                addNotification('Docente creado con éxito', 'success');
-                                                setNewTeacher({ full_name: '', rut: '' });
-                                                setShowCreateTeacher(false);
-                                                fetchTeachers();
-                                            } catch (err) {
-                                                addNotification(err.response?.data?.detail || 'Error al crear docente', 'error');
-                                            }
-                                        }}
-                                        style={{
-                                            backgroundColor: '#059669',
-                                            color: '#fff',
-                                            padding: '10px 20px',
-                                            borderRadius: '8px',
-                                            fontWeight: 700,
-                                            border: 'none',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        Guardar
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Upload Section */}
-                        <div className="glass p-6">
-                            <h3 className="text-lg font-bold mb-4">Importar Docentes desde Excel</h3>
-                            <p className="text-slate-400 text-sm mb-4">
-                                El archivo debe tener dos columnas: <strong>Nombre Completo</strong> y <strong>RUT</strong>. La primera fila se considera encabezado.
-                            </p>
-                            <div className="flex gap-4 items-center flex-wrap">
-                                <input
-                                    type="file"
-                                    accept=".xlsx,.xls"
-                                    id="excel-upload"
-                                    style={{ display: 'none' }}
-                                    onChange={(e) => {
-                                        if (e.target.files[0]) {
-                                            setSelectedFile(e.target.files[0]);
-                                        }
-                                    }}
-                                />
-                                <label
-                                    htmlFor="excel-upload"
-                                    className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-3 rounded-lg flex items-center gap-2 font-semibold cursor-pointer transition-all border border-slate-600"
-                                >
-                                    <FileText size={18} />
-                                    {selectedFile ? selectedFile.name : 'Seleccionar Archivo'}
-                                </label>
-
-                                <button
-                                    disabled={!selectedFile}
-                                    onClick={async () => {
-                                        if (!selectedFile) return;
-                                        const formData = new FormData();
-                                        formData.append('file', selectedFile);
-                                        try {
-                                            const res = await axios.post('/api/teachers/upload-excel/', formData, {
-                                                headers: { 'Content-Type': 'multipart/form-data' }
-                                            });
-                                            addNotification(`✅ ${res.data.created} docente(s) importados, ${res.data.skipped} omitidos.`, 'success');
-                                            setSelectedFile(null);
-                                            document.getElementById('excel-upload').value = '';
-                                            fetchTeachers();
-                                        } catch (err) {
-                                            addNotification(err.response?.data?.detail || 'Error al importar', 'error');
-                                        }
-                                    }}
-                                    style={{
-                                        backgroundColor: selectedFile ? '#059669' : '#1e293b',
-                                        color: '#ffffff',
-                                        padding: '12px 24px',
-                                        borderRadius: '8px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        fontWeight: 700,
-                                        border: 'none',
-                                        cursor: selectedFile ? 'pointer' : 'not-allowed',
-                                        opacity: selectedFile ? 1 : 0.4,
-                                        transition: 'all 0.2s'
-                                    }}
-                                >
-                                    <Plus size={20} />
-                                    Subir Docentes
-                                </button>
-                            </div>
                         </div>
 
                         {/* Teacher List Placeholder */}
@@ -410,9 +361,30 @@ export default function App() {
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="text-slate-500 text-sm border-b border-slate-800">
-                                        <th className="pb-4 font-medium">Nombre Completo</th>
-                                        <th className="pb-4 font-medium">RUT</th>
-                                        <th className="pb-4 font-medium text-right">Acciones</th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>CODIGO DOCENTE</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                    value={teacherColumnFilters.rut}
+                                                    onChange={(e) => setTeacherColumnFilters(prev => ({ ...prev, rut: e.target.value }))}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>DOCENTE</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                    value={teacherColumnFilters.full_name}
+                                                    onChange={(e) => setTeacherColumnFilters(prev => ({ ...prev, full_name: e.target.value }))}
+                                                />
+                                            </div>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-sm">
@@ -423,67 +395,10 @@ export default function App() {
                                             </td>
                                         </tr>
                                     ) : (
-                                        teachers.map((t) => (
+                                        filteredTeachers.map((t) => (
                                             <tr key={t.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
-                                                {editingTeacher?.id === t.id ? (
-                                                    <>
-                                                        <td className="py-2">
-                                                            <input
-                                                                value={editingTeacher.full_name}
-                                                                onChange={(e) => setEditingTeacher({ ...editingTeacher, full_name: e.target.value })}
-                                                                style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '6px 10px', color: '#e2e8f0', outline: 'none', width: '300px' }}
-                                                            />
-                                                        </td>
-                                                        <td className="py-2">
-                                                            <input
-                                                                value={editingTeacher.rut}
-                                                                onChange={(e) => setEditingTeacher({ ...editingTeacher, rut: e.target.value })}
-                                                                style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '6px 10px', color: '#e2e8f0', outline: 'none', width: '140px' }}
-                                                            />
-                                                        </td>
-                                                        <td className="py-2 text-right">
-                                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                                                <button
-                                                                    onClick={async () => {
-                                                                        try {
-                                                                            await axios.put(`/api/teachers/${editingTeacher.id}`, {
-                                                                                full_name: editingTeacher.full_name,
-                                                                                rut: editingTeacher.rut
-                                                                            });
-                                                                            addNotification('Docente actualizado', 'success');
-                                                                            setEditingTeacher(null);
-                                                                            fetchTeachers();
-                                                                        } catch (err) {
-                                                                            addNotification(err.response?.data?.detail || 'Error al actualizar', 'error');
-                                                                        }
-                                                                    }}
-                                                                    style={{ backgroundColor: '#059669', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                                                >
-                                                                    <Check size={14} /> Guardar
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => setEditingTeacher(null)}
-                                                                    style={{ backgroundColor: '#475569', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}
-                                                                >
-                                                                    <X size={14} />
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <td className="py-3 font-semibold">{t.full_name}</td>
-                                                        <td className="py-3 text-slate-400">{t.rut}</td>
-                                                        <td className="py-3 text-right">
-                                                            <button
-                                                                onClick={() => setEditingTeacher({ id: t.id, full_name: t.full_name, rut: t.rut })}
-                                                                style={{ backgroundColor: 'transparent', color: '#94a3b8', border: '1px solid #334155', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}
-                                                            >
-                                                                <Pencil size={14} /> Editar
-                                                            </button>
-                                                        </td>
-                                                    </>
-                                                )}
+                                                <td className="py-3 text-slate-400 font-mono">{t.rut}</td>
+                                                <td className="py-3 font-semibold">{t.full_name}</td>
                                             </tr>
                                         ))
                                     )}
@@ -492,10 +407,155 @@ export default function App() {
                         </div>
                     </div>
                 ) : activeTab === 'subjects' ? (
-                    <div className="glass p-8 text-center text-slate-400">
-                        <BookOpen size={48} className="mx-auto mb-4 opacity-20" />
-                        <h3 className="text-xl font-bold text-white">Catálogo de Asignaturas</h3>
-                        <p>Administración de currícula y cupos por carrera.</p>
+                    <div className="flex flex-col gap-6">
+                        <div className="flex justify-between items-end">
+                            <div>
+                                <h2 className="text-3xl font-bold">Catálogo de Asignaturas</h2>
+                                <p className="text-slate-400 mt-1">Administración de currícula y cupos por carrera</p>
+                            </div>
+                        </div>
+
+                        <div className="glass p-6">
+                            <h3 className="text-lg font-bold mb-4">Listado de Asignaturas</h3>
+
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="text-slate-500 text-sm border-b border-slate-800">
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>AÑO_PLAN</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                    value={columnFilters.plan_year}
+                                                    onChange={(e) => handleColumnFilterChange('plan_year', e.target.value)}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>CODCARR</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                    value={columnFilters.career_code}
+                                                    onChange={(e) => handleColumnFilterChange('career_code', e.target.value)}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>CARRERA</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                    value={columnFilters.faculty}
+                                                    onChange={(e) => handleColumnFilterChange('faculty', e.target.value)}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>NIVEL</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                    value={columnFilters.level}
+                                                    onChange={(e) => handleColumnFilterChange('level', e.target.value)}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>CODRAMO</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                    value={columnFilters.code}
+                                                    onChange={(e) => handleColumnFilterChange('code', e.target.value)}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>ASIGNATURA</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                    value={columnFilters.name}
+                                                    onChange={(e) => handleColumnFilterChange('name', e.target.value)}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>EQUIVALENTE</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                    value={columnFilters.equivalent}
+                                                    onChange={(e) => handleColumnFilterChange('equivalent', e.target.value)}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>SECCION</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                    value={columnFilters.section}
+                                                    onChange={(e) => handleColumnFilterChange('section', e.target.value)}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>CUPO</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                    value={columnFilters.enrolled_students}
+                                                    onChange={(e) => handleColumnFilterChange('enrolled_students', e.target.value)}
+                                                />
+                                            </div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="text-sm">
+                                    {filteredSubjects.length === 0 ? (
+                                        <tr className="border-b border-slate-800/50">
+                                            <td className="py-6 text-center text-slate-500" colSpan="9">
+                                                No se encontraron asignaturas.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredSubjects.map((sub) => (
+                                            <tr key={sub.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
+                                                <td className="py-3 text-slate-400">{sub.plan_year || '-'}</td>
+                                                <td className="py-3 text-slate-400">{sub.career_code || '-'}</td>
+                                                <td className="py-3 text-slate-400">{sub.faculty?.name || 'General'}</td>
+                                                <td className="py-3 text-slate-400">{sub.level || '-'}</td>
+                                                <td className="py-3 font-mono text-pink-400">{sub.code || '-'}</td>
+                                                <td className="py-3 font-semibold">{sub.name}</td>
+                                                <td className="py-3 text-slate-400 text-xs">{sub.equivalent || '-'}</td>
+                                                <td className="py-3 text-blue-400 font-bold">{sub.section || '-'}</td>
+                                                <td className="py-3 text-emerald-400 font-bold">{sub.enrolled_students}</td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 ) : activeTab === 'rooms' ? (
                     <div className="flex flex-col gap-6">
@@ -504,167 +564,8 @@ export default function App() {
                                 <h2 className="text-3xl font-bold">Módulo de Salas</h2>
                                 <p className="text-slate-400 mt-1">Gestión de salas, laboratorios y aulas</p>
                             </div>
-                            <button
-                                onClick={() => setShowCreateRoom(!showCreateRoom)}
-                                style={{
-                                    backgroundColor: '#2563eb',
-                                    color: '#fff',
-                                    padding: '10px 20px',
-                                    borderRadius: '10px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    fontWeight: 600,
-                                    border: 'none',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <Plus size={18} />
-                                {showCreateRoom ? 'Cancelar' : 'Crear Sala'}
-                            </button>
-                        </div>
 
-                        {/* Manual Creation */}
-                        {showCreateRoom && (
-                            <div className="glass p-6">
-                                <h3 className="text-lg font-bold mb-4">Crear Sala Manualmente</h3>
-                                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <label className="text-slate-400 text-xs">Código</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Ej: LAB-101"
-                                            value={newRoom.code}
-                                            onChange={(e) => setNewRoom({ ...newRoom, code: e.target.value })}
-                                            style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '10px 14px', color: '#e2e8f0', outline: 'none', width: '160px' }}
-                                        />
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <label className="text-slate-400 text-xs">Nombre</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Ej: Laboratorio Informática"
-                                            value={newRoom.name}
-                                            onChange={(e) => setNewRoom({ ...newRoom, name: e.target.value })}
-                                            style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '10px 14px', color: '#e2e8f0', outline: 'none', width: '260px' }}
-                                        />
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <label className="text-slate-400 text-xs">Capacidad</label>
-                                        <input
-                                            type="number"
-                                            placeholder="Ej: 40"
-                                            value={newRoom.capacity}
-                                            onChange={(e) => setNewRoom({ ...newRoom, capacity: e.target.value })}
-                                            style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '10px 14px', color: '#e2e8f0', outline: 'none', width: '100px' }}
-                                        />
-                                    </div>
-                                    <button
-                                        onClick={async () => {
-                                            if (!newRoom.code || !newRoom.name || !newRoom.capacity) {
-                                                addNotification('Completa todos los campos', 'error');
-                                                return;
-                                            }
-                                            try {
-                                                await axios.post('/api/rooms/', {
-                                                    code: newRoom.code,
-                                                    name: newRoom.name,
-                                                    capacity: parseInt(newRoom.capacity)
-                                                });
-                                                addNotification('Sala creada con éxito', 'success');
-                                                setNewRoom({ code: '', name: '', capacity: '' });
-                                                setShowCreateRoom(false);
-                                                fetchRooms();
-                                            } catch (err) {
-                                                addNotification(err.response?.data?.detail || 'Error al crear sala', 'error');
-                                            }
-                                        }}
-                                        style={{
-                                            backgroundColor: '#059669',
-                                            color: '#fff',
-                                            padding: '10px 20px',
-                                            borderRadius: '8px',
-                                            fontWeight: 700,
-                                            border: 'none',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        Guardar
-                                    </button>
-                                </div>
-                            </div>
-                        )}
 
-                        {/* Excel Upload */}
-                        <div className="glass p-6">
-                            <h3 className="text-lg font-bold mb-4">Importar Salas desde Excel</h3>
-                            <p className="text-slate-400 text-sm mb-4">
-                                El archivo debe tener tres columnas: <strong>CODSALA</strong>, <strong>NOMBRE</strong> y <strong>CAPACIDAD</strong>.
-                            </p>
-                            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                <input
-                                    type="file"
-                                    accept=".xlsx,.xls"
-                                    id="room-excel-upload"
-                                    style={{ display: 'none' }}
-                                    onChange={(e) => {
-                                        if (e.target.files[0]) setSelectedRoomFile(e.target.files[0]);
-                                    }}
-                                />
-                                <label
-                                    htmlFor="room-excel-upload"
-                                    style={{
-                                        backgroundColor: '#1e293b',
-                                        color: '#94a3b8',
-                                        padding: '12px 20px',
-                                        borderRadius: '8px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        fontWeight: 600,
-                                        cursor: 'pointer',
-                                        border: '1px solid #475569'
-                                    }}
-                                >
-                                    <FileText size={18} />
-                                    {selectedRoomFile ? selectedRoomFile.name : 'Seleccionar Archivo'}
-                                </label>
-                                <button
-                                    disabled={!selectedRoomFile}
-                                    onClick={async () => {
-                                        if (!selectedRoomFile) return;
-                                        const formData = new FormData();
-                                        formData.append('file', selectedRoomFile);
-                                        try {
-                                            const res = await axios.post('/api/rooms/upload-excel/', formData, {
-                                                headers: { 'Content-Type': 'multipart/form-data' }
-                                            });
-                                            addNotification(`✅ ${res.data.created} sala(s) importadas, ${res.data.skipped} omitidas.`, 'success');
-                                            setSelectedRoomFile(null);
-                                            document.getElementById('room-excel-upload').value = '';
-                                            fetchRooms();
-                                        } catch (err) {
-                                            addNotification(err.response?.data?.detail || 'Error al importar', 'error');
-                                        }
-                                    }}
-                                    style={{
-                                        backgroundColor: selectedRoomFile ? '#059669' : '#1e293b',
-                                        color: '#ffffff',
-                                        padding: '12px 24px',
-                                        borderRadius: '8px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        fontWeight: 700,
-                                        border: 'none',
-                                        cursor: selectedRoomFile ? 'pointer' : 'not-allowed',
-                                        opacity: selectedRoomFile ? 1 : 0.4
-                                    }}
-                                >
-                                    <Plus size={20} />
-                                    Subir Salas
-                                </button>
-                            </div>
                         </div>
 
                         {/* Room List */}
@@ -673,91 +574,57 @@ export default function App() {
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="text-slate-500 text-sm border-b border-slate-800">
-                                        <th className="pb-4 font-medium">Código</th>
-                                        <th className="pb-4 font-medium">Nombre</th>
-                                        <th className="pb-4 font-medium">Capacidad</th>
-                                        <th className="pb-4 font-medium text-right">Acciones</th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>CODSALA</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                    value={roomColumnFilters.code}
+                                                    onChange={(e) => setRoomColumnFilters(prev => ({ ...prev, code: e.target.value }))}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>NOMBRE</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                    value={roomColumnFilters.name}
+                                                    onChange={(e) => setRoomColumnFilters(prev => ({ ...prev, name: e.target.value }))}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>CAPACIDAD</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                    value={roomColumnFilters.capacity}
+                                                    onChange={(e) => setRoomColumnFilters(prev => ({ ...prev, capacity: e.target.value }))}
+                                                />
+                                            </div>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-sm">
                                     {rooms.length === 0 ? (
                                         <tr className="border-b border-slate-800/50">
-                                            <td className="py-6 text-center text-slate-500" colSpan="4">
+                                            <td className="py-6 text-center text-slate-500" colSpan="3">
                                                 No hay salas registradas.
                                             </td>
                                         </tr>
                                     ) : (
-                                        rooms.map((r) => (
+                                        filteredRooms.map((r) => (
                                             <tr key={r.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
-                                                {editingRoom?.id === r.id ? (
-                                                    <>
-                                                        <td className="py-2">
-                                                            <input
-                                                                value={editingRoom.code}
-                                                                onChange={(e) => setEditingRoom({ ...editingRoom, code: e.target.value })}
-                                                                style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '6px 10px', color: '#e2e8f0', outline: 'none', width: '120px' }}
-                                                            />
-                                                        </td>
-                                                        <td className="py-2">
-                                                            <input
-                                                                value={editingRoom.name}
-                                                                onChange={(e) => setEditingRoom({ ...editingRoom, name: e.target.value })}
-                                                                style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '6px 10px', color: '#e2e8f0', outline: 'none', width: '220px' }}
-                                                            />
-                                                        </td>
-                                                        <td className="py-2">
-                                                            <input
-                                                                type="number"
-                                                                value={editingRoom.capacity}
-                                                                onChange={(e) => setEditingRoom({ ...editingRoom, capacity: e.target.value })}
-                                                                style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '6px 10px', color: '#e2e8f0', outline: 'none', width: '80px' }}
-                                                            />
-                                                        </td>
-                                                        <td className="py-2 text-right">
-                                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                                                <button
-                                                                    onClick={async () => {
-                                                                        try {
-                                                                            await axios.put(`/api/rooms/${editingRoom.id}`, {
-                                                                                code: editingRoom.code,
-                                                                                name: editingRoom.name,
-                                                                                capacity: parseInt(editingRoom.capacity)
-                                                                            });
-                                                                            addNotification('Sala actualizada', 'success');
-                                                                            setEditingRoom(null);
-                                                                            fetchRooms();
-                                                                        } catch (err) {
-                                                                            addNotification(err.response?.data?.detail || 'Error al actualizar', 'error');
-                                                                        }
-                                                                    }}
-                                                                    style={{ backgroundColor: '#059669', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                                                >
-                                                                    <Check size={14} /> Guardar
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => setEditingRoom(null)}
-                                                                    style={{ backgroundColor: '#475569', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}
-                                                                >
-                                                                    <X size={14} />
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <td className="py-3 font-mono text-blue-400">{r.code}</td>
-                                                        <td className="py-3 font-semibold">{r.name}</td>
-                                                        <td className="py-3 text-slate-400">{r.capacity}</td>
-                                                        <td className="py-3 text-right">
-                                                            <button
-                                                                onClick={() => setEditingRoom({ id: r.id, code: r.code, name: r.name, capacity: r.capacity })}
-                                                                style={{ backgroundColor: 'transparent', color: '#94a3b8', border: '1px solid #334155', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}
-                                                            >
-                                                                <Pencil size={14} /> Editar
-                                                            </button>
-                                                        </td>
-                                                    </>
-                                                )}
+                                                <td className="py-3 font-mono text-blue-400">{r.code}</td>
+                                                <td className="py-3 font-semibold">{r.name}</td>
+                                                <td className="py-3 text-slate-400">{r.capacity}</td>
                                             </tr>
                                         ))
                                     )}
@@ -770,6 +637,48 @@ export default function App() {
                         <Calendar size={48} className="mx-auto mb-4 opacity-20" />
                         <h3 className="text-xl font-bold text-white">Visor de Horarios</h3>
                         <p>Vista completa de la programación académica.</p>
+                    </div>
+                ) : activeTab === 'settings' ? (
+                    <div className="flex flex-col gap-6">
+                        <div className="flex justify-between items-end">
+                            <div>
+                                <h2 className="text-3xl font-bold">Ajustes</h2>
+                                <p className="text-slate-400 mt-1">Configuración general y herramientas del sistema</p>
+                            </div>
+                        </div>
+
+                        <div className="glass p-6">
+                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                <div className="p-2 bg-green-500/20 rounded-lg text-green-500">
+                                    <FileText size={20} />
+                                </div>
+                                Integraciones
+                            </h3>
+
+                            <div className="border border-slate-700 rounded-xl p-4 bg-slate-900/50">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <h4 className="font-semibold text-blue-400">Google Sheets</h4>
+                                        <p className="text-sm text-slate-400 mt-1">
+                                            Sincronizar Docentes, Facultades y Asignaturas desde la hoja de cálculo maestra.
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={handleSyncGoogleSheets}
+                                        disabled={isSyncing}
+                                        className={`px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all ${isSyncing
+                                            ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                                            : 'bg-green-600 hover:bg-green-500 text-slate-950 shadow-lg shadow-green-900/20'
+                                            }`}
+                                    >
+                                        <div className={`${isSyncing ? 'animate-spin' : ''}`}>
+                                            <CheckCircle2 size={18} />
+                                        </div>
+                                        {isSyncing ? 'Sincronizando...' : 'Sincronizar Ahora'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 ) : userRole === 'director' ? (
                     <DirectorDashboard />
@@ -923,8 +832,9 @@ export default function App() {
                             </div>
                         </div>
                     </>
-                )}
-            </main>
-        </div>
+                )
+                }
+            </main >
+        </div >
     );
 }

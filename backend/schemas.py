@@ -61,6 +61,12 @@ class Room(RoomBase):
         from_attributes = True
 
 class SubjectBase(BaseModel):
+    code: Optional[str] = None
+    plan_year: Optional[str] = None
+    career_code: Optional[str] = None
+    level: Optional[str] = None
+    equivalent: Optional[str] = None
+    section: Optional[str] = None
     name: str
     enrolled_students: int
     required_room_type_id: int
@@ -68,6 +74,7 @@ class SubjectBase(BaseModel):
 
 class Subject(SubjectBase):
     id: int
+    faculty: Optional[Faculty] = None
     class Config:
         from_attributes = True
 
