@@ -48,6 +48,14 @@ class GoogleSheetsService:
         except Exception as e:
             print(f"Warning: Could not sync days from DIAS sheet: {e}")
 
+        # 6. Sync Time Modules (MODULOS)
+        try:
+            ws_modules = sh.worksheet("MODULOS")
+            rows_modules = ws_modules.get_all_records()
+            self._sync_time_modules(db, rows_modules)
+        except Exception as e:
+            print(f"Warning: Could not sync time modules from MODULOS sheet: {e}")
+
         return {"message": "Sincronización completada exitosamente", "rows_processed": len(rows)}
 
     def _sync_faculties(self, db: Session, rows: list):
@@ -285,4 +293,30 @@ class GoogleSheetsService:
                 db.add(new_day)
         
         db.commit()
+
+    def _sync_time_modules(self, db: Session, rows: list):
+        """
+        Syncs Time Modules based on 'MOD_HOR'.
+        """
+        modules_map = {}
+        for row in rows:
+            mod_hor = str(row.get('MOD_HOR', '')).strip()
+            if not mod_hor: continue
+            modules_map[mod_hor] = {
+                'hora_inicio': str(row.get('HORA_INICIO', '')).strip(),
+                'hora_final': str(row.get('HORA_FINAL', '')).strip(),
+                'rango': str(row.get('RANGO', '')).strip(),
+                'modulo': str(row.get('MÓDULO', '')).strip()
+            }
+        for mod_hor, data in modules_map.items():
+            existing = db.query(models.TimeModule).filter(models.TimeModule.mod_hor == mod_hor).first()
+            if existing:
+                existing.hora_inicio = data['hora_inicio']
+                existing.hora_final = data['hora_final']
+                existing.rango = data['rango']
+                existing.modulo = data['modulo']
+            else:
+                db.add(models.TimeModule(mod_hor=mod_hor, **data))
+        db.commit()
+
 

@@ -107,3 +107,15 @@ class Day(DayBase):
     id: int
     class Config:
         from_attributes = True
+
+class TimeModuleBase(BaseModel):
+    mod_hor: str
+    hora_inicio: str
+    hora_final: str
+    rango: str
+    modulo: str
+
+class TimeModule(TimeModuleBase):
+    id: int
+    class Config:
+        from_attributes = True

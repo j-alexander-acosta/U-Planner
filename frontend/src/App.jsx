@@ -76,6 +76,7 @@ export default function App() {
 
     const [subjects, setSubjects] = useState([]);
     const [days, setDays] = useState([]);
+    const [timeModules, setTimeModules] = useState([]);
     const [isSyncing, setIsSyncing] = useState(false);
 
     const fetchTeachers = async () => {
@@ -145,6 +146,15 @@ export default function App() {
         }
     };
 
+    const fetchTimeModules = async () => {
+        try {
+            const res = await axios.get('/api/time-modules/');
+            setTimeModules(res.data);
+        } catch (err) {
+            console.error('Error fetching time modules:', err);
+        }
+    };
+
 
     useEffect(() => {
         if (activeTab === 'teachers') {
@@ -159,7 +169,11 @@ export default function App() {
         if (activeTab === 'days') {
             fetchDays();
         }
+        if (activeTab === 'timeModules') {
+            fetchTimeModules();
+        }
     }, [activeTab]);
+
 
     const [columnFilters, setColumnFilters] = useState({
         plan_year: '',
@@ -245,6 +259,7 @@ export default function App() {
             if (activeTab === 'rooms') fetchRooms();
             if (activeTab === 'subjects') fetchSubjects();
             if (activeTab === 'days') fetchDays();
+            if (activeTab === 'timeModules') fetchTimeModules();
         } catch (error) {
             console.error(error);
             addNotification('Error al sincronizar con Google Sheets', 'error');
@@ -323,6 +338,12 @@ export default function App() {
                         label="Días"
                         active={activeTab === 'days'}
                         onClick={() => setActiveTab('days')}
+                    />
+                    <SidebarItem
+                        icon={Calendar}
+                        label="Horas"
+                        active={activeTab === 'timeModules'}
+                        onClick={() => setActiveTab('timeModules')}
                     />
 
                     <SidebarItem
@@ -690,6 +711,49 @@ export default function App() {
                                         days.map((d) => (
                                             <tr key={d.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
                                                 <td className="py-3 font-semibold">{d.name}</td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                ) : activeTab === 'timeModules' ? (
+                    <div className="flex flex-col gap-6">
+                        <div className="flex justify-between items-end">
+                            <div>
+                                <h2 className="text-3xl font-bold">Módulo de Horas</h2>
+                                <p className="text-slate-400 mt-1">Configuración de rangos horarios académicos</p>
+                            </div>
+                        </div>
+
+                        <div className="glass p-6">
+                            <h3 className="text-lg font-bold mb-4">Listado de Módulos Horarios</h3>
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="text-slate-500 text-sm border-b border-slate-800">
+                                        <th className="pb-4 font-medium">MOD_HOR</th>
+                                        <th className="pb-4 font-medium">HORA_INICIO</th>
+                                        <th className="pb-4 font-medium">HORA_FINAL</th>
+                                        <th className="pb-4 font-medium">RANGO</th>
+                                        <th className="pb-4 font-medium">MÓDULO</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="text-sm">
+                                    {timeModules.length === 0 ? (
+                                        <tr className="border-b border-slate-800/50">
+                                            <td className="py-6 text-center text-slate-500" colSpan="5">
+                                                No hay módulos horarios registrados.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        timeModules.map((m) => (
+                                            <tr key={m.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
+                                                <td className="py-3 font-mono text-blue-400">{m.mod_hor}</td>
+                                                <td className="py-3">{m.hora_inicio}</td>
+                                                <td className="py-3">{m.hora_final}</td>
+                                                <td className="py-3 text-slate-400">{m.rango}</td>
+                                                <td className="py-3 font-semibold">{m.modulo}</td>
                                             </tr>
                                         ))
                                     )}

@@ -113,3 +113,11 @@ class Day(Base):
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String, unique=True, nullable=False) # DIA
     name = Column(String, nullable=False) # DIA_U
+class TimeModule(Base):
+    __tablename__ = "time_modules"
+    id = Column(Integer, primary_key=True, index=True)
+    mod_hor = Column(String, nullable=False)
+    hora_inicio = Column(String, nullable=False)
+    hora_final = Column(String, nullable=False)
+    rango = Column(String, nullable=False)
+    modulo = Column(String, nullable=False)

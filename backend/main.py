@@ -145,9 +145,13 @@ def read_rooms(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return db.query(models.Room).offset(skip).limit(limit).all()
 
 @app.get("/days/", response_model=List[schemas.Day])
-
 def read_days(db: Session = Depends(get_db)):
     return db.query(models.Day).all()
+
+@app.get("/time-modules/", response_model=List[schemas.TimeModule])
+def read_time_modules(db: Session = Depends(get_db)):
+    return db.query(models.TimeModule).all()
+
 
 
 @app.put("/rooms/{room_id}", response_model=schemas.Room)
