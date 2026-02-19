@@ -4,13 +4,20 @@ from typing import List
 import openpyxl
 import io
 
-import models, database, schemas, crud
+
+import models, database, schemas, crud, google_sheets
 from database import engine, get_db
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="U-Planner API")
+
+# --- Google Sheets Sync ---
+@app.post("/sync/google-sheets/")
+def sync_google_sheets(db: Session = Depends(get_db)):
+    service = google_sheets.GoogleSheetsService()
+    return service.sync_full_data(db)
 
 @app.get("/")
 def read_root():

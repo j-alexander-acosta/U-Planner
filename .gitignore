@@ -12,3 +12,6 @@ env/
 venv/
 .venv/
 u_planner.db
+
+# Credentials
+service_account.json
