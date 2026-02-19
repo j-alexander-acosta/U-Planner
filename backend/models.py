@@ -127,7 +127,9 @@ class AcademicSchedule(Base):
     id = Column(Integer, primary_key=True, index=True)
     carrera = Column(String, nullable=True)
     nivel = Column(String, nullable=True)
+    codramo = Column(String, nullable=True) # CODRAMO
     modulo_horario = Column(String, nullable=True) # MODULO Y HORARIO
     seccion = Column(String, nullable=True)
     asignatura = Column(String, nullable=True)
     docente = Column(String, nullable=True)
+

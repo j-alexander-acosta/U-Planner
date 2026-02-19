@@ -123,9 +123,11 @@ export default function App() {
         nivel: '',
         modulo_horario: '',
         seccion: '',
+        codramo: '',
         asignatura: '',
         docente: ''
     });
+
 
     const filteredAcademicSchedules = academicSchedules.filter(sched => {
         return Object.entries(academicScheduleColumnFilters).every(([key, value]) => {
@@ -810,73 +812,86 @@ export default function App() {
                             <table className="w-full text-left min-w-[1000px]">
                                 <thead>
                                     <tr className="text-slate-500 text-sm border-b border-slate-800">
-                                        <th className="pb-4 font-medium align-top">
-                                            <div className="flex flex-col gap-2">
+                                        <th className="pb-4 font-medium align-top text-left px-3">
+                                            <div className="flex flex-col gap-2 items-start">
                                                 <span>CARRERA</span>
                                                 <input
                                                     type="text"
                                                     placeholder="Filtrar..."
-                                                    className="bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs w-full focus:outline-none focus:border-blue-500"
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
                                                     value={academicScheduleColumnFilters.carrera}
                                                     onChange={(e) => setAcademicScheduleColumnFilters({ ...academicScheduleColumnFilters, carrera: e.target.value })}
                                                 />
                                             </div>
                                         </th>
-                                        <th className="pb-4 font-medium align-top">
-                                            <div className="flex flex-col gap-2">
+                                        <th className="pb-4 font-medium align-top text-center px-3">
+                                            <div className="flex flex-col gap-2 items-center">
                                                 <span>NIVEL</span>
                                                 <input
                                                     type="text"
                                                     placeholder="Filtrar..."
-                                                    className="bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs w-full focus:outline-none focus:border-blue-500"
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
                                                     value={academicScheduleColumnFilters.nivel}
                                                     onChange={(e) => setAcademicScheduleColumnFilters({ ...academicScheduleColumnFilters, nivel: e.target.value })}
                                                 />
                                             </div>
                                         </th>
-                                        <th className="pb-4 font-medium align-top">
-                                            <div className="flex flex-col gap-2">
+                                        <th className="pb-4 font-medium align-top text-left px-3">
+                                            <div className="flex flex-col gap-2 items-start">
                                                 <span>MÓDULO Y HORARIO</span>
                                                 <input
                                                     type="text"
                                                     placeholder="Filtrar..."
-                                                    className="bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs w-full focus:outline-none focus:border-blue-500"
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
                                                     value={academicScheduleColumnFilters.modulo_horario}
                                                     onChange={(e) => setAcademicScheduleColumnFilters({ ...academicScheduleColumnFilters, modulo_horario: e.target.value })}
                                                 />
                                             </div>
                                         </th>
-                                        <th className="pb-4 font-medium align-top">
-                                            <div className="flex flex-col gap-2">
+                                        <th className="pb-4 font-medium align-top text-center px-3">
+                                            <div className="flex flex-col gap-2 items-center">
                                                 <span>SECCIÓN</span>
                                                 <input
                                                     type="text"
                                                     placeholder="Filtrar..."
-                                                    className="bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs w-full focus:outline-none focus:border-blue-500"
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
                                                     value={academicScheduleColumnFilters.seccion}
                                                     onChange={(e) => setAcademicScheduleColumnFilters({ ...academicScheduleColumnFilters, seccion: e.target.value })}
                                                 />
                                             </div>
                                         </th>
-                                        <th className="pb-4 font-medium align-top">
-                                            <div className="flex flex-col gap-2">
+                                        <th className="pb-4 font-medium align-top text-left px-3">
+                                            <div className="flex flex-col gap-2 items-start">
+                                                <span>CODRAMO</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                    value={academicScheduleColumnFilters.codramo}
+                                                    onChange={(e) => setAcademicScheduleColumnFilters({ ...academicScheduleColumnFilters, codramo: e.target.value })}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th className="pb-4 font-medium align-top text-left px-3">
+                                            <div className="flex flex-col gap-2 items-start">
                                                 <span>ASIGNATURA</span>
                                                 <input
                                                     type="text"
                                                     placeholder="Filtrar..."
-                                                    className="bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs w-full focus:outline-none focus:border-blue-500"
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
                                                     value={academicScheduleColumnFilters.asignatura}
                                                     onChange={(e) => setAcademicScheduleColumnFilters({ ...academicScheduleColumnFilters, asignatura: e.target.value })}
                                                 />
                                             </div>
                                         </th>
-                                        <th className="pb-4 font-medium align-top">
-                                            <div className="flex flex-col gap-2">
+
+                                        <th className="pb-4 font-medium align-top text-left px-3">
+                                            <div className="flex flex-col gap-2 items-start">
                                                 <span>DOCENTE</span>
                                                 <input
                                                     type="text"
                                                     placeholder="Filtrar..."
-                                                    className="bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs w-full focus:outline-none focus:border-blue-500"
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
                                                     value={academicScheduleColumnFilters.docente}
                                                     onChange={(e) => setAcademicScheduleColumnFilters({ ...academicScheduleColumnFilters, docente: e.target.value })}
                                                 />
@@ -887,20 +902,23 @@ export default function App() {
                                 <tbody className="text-sm">
                                     {filteredAcademicSchedules.length === 0 ? (
                                         <tr className="border-b border-slate-800/50">
-                                            <td className="py-6 text-center text-slate-500" colSpan="6">
+                                            <td className="py-6 text-center text-slate-500" colSpan="7">
                                                 No hay horarios registrados.
                                             </td>
+
                                         </tr>
                                     ) : (
                                         filteredAcademicSchedules.map((s) => (
                                             <tr key={s.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
-                                                <td className="py-3 text-xs text-blue-400 font-mono">{s.carrera}</td>
-                                                <td className="py-3 text-center">{s.nivel}</td>
-                                                <td className="py-3 text-xs font-mono">{s.modulo_horario}</td>
-                                                <td className="py-3 text-center font-bold">{s.seccion}</td>
-                                                <td className="py-3">{s.asignatura}</td>
-                                                <td className="py-3 italic text-slate-300">{s.docente}</td>
+                                                <td className="py-3 px-3 text-xs text-blue-400 font-mono">{s.carrera}</td>
+                                                <td className="py-3 px-3 text-center">{s.nivel}</td>
+                                                <td className="py-3 px-3 text-xs font-mono">{s.modulo_horario}</td>
+                                                <td className="py-3 px-3 text-center font-bold">{s.seccion}</td>
+                                                <td className="py-3 px-3 font-mono text-xs text-slate-400">{s.codramo}</td>
+                                                <td className="py-3 px-3">{s.asignatura}</td>
+                                                <td className="py-3 px-3 italic text-slate-300">{s.docente}</td>
                                             </tr>
+
                                         ))
                                     )}
                                 </tbody>

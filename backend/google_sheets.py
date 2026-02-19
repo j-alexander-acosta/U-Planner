@@ -341,11 +341,13 @@ class GoogleSheetsService:
             new_sched = models.AcademicSchedule(
                 carrera=carrera,
                 nivel=str(row.get('NIVEL', '')).strip(),
+                codramo=str(row.get('CODRAMO', '')).strip(),
                 modulo_horario=str(row.get('MODULO Y HORARIO', '')).strip(),
                 seccion=str(row.get('SECCION', '')).strip(),
                 asignatura=str(row.get('ASIGNATURA', '')).strip(),
                 docente=str(row.get('DOCENTE', '')).strip()
             )
+
             db.add(new_sched)
             
         db.commit()

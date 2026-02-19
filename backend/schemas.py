@@ -123,10 +123,12 @@ class TimeModule(TimeModuleBase):
 class AcademicScheduleBase(BaseModel):
     carrera: Optional[str] = None
     nivel: Optional[str] = None
+    codramo: Optional[str] = None
     modulo_horario: Optional[str] = None
     seccion: Optional[str] = None
     asignatura: Optional[str] = None
     docente: Optional[str] = None
+
 
 class AcademicSchedule(AcademicScheduleBase):
     id: int
