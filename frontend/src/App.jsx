@@ -116,18 +116,6 @@ export default function App() {
         });
     });
 
-    const [dayColumnFilters, setDayColumnFilters] = useState({
-        name: ''
-    });
-
-    const filteredDays = days.filter(day => {
-        return Object.entries(dayColumnFilters).every(([key, value]) => {
-            if (!value) return true;
-            const searchTerm = value.toLowerCase();
-            const dayValue = String(day[key] || '').toLowerCase();
-            return dayValue.includes(searchTerm);
-        });
-    });
 
 
     const fetchRooms = async () => {
@@ -687,16 +675,7 @@ export default function App() {
                                 <thead>
                                     <tr className="text-slate-500 text-sm border-b border-slate-800">
                                         <th className="pb-4 font-medium align-top">
-                                            <div className="flex flex-col gap-2">
-                                                <span>DIA_U</span>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Filtrar..."
-                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
-                                                    value={dayColumnFilters.name}
-                                                    onChange={(e) => setDayColumnFilters(prev => ({ ...prev, name: e.target.value }))}
-                                                />
-                                            </div>
+                                            <span>DIA_U</span>
                                         </th>
                                     </tr>
                                 </thead>
@@ -708,7 +687,7 @@ export default function App() {
                                             </td>
                                         </tr>
                                     ) : (
-                                        filteredDays.map((d) => (
+                                        days.map((d) => (
                                             <tr key={d.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
                                                 <td className="py-3 font-semibold">{d.name}</td>
                                             </tr>
