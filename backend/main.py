@@ -144,6 +144,12 @@ def create_room(room: schemas.RoomBase, db: Session = Depends(get_db)):
 def read_rooms(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return db.query(models.Room).offset(skip).limit(limit).all()
 
+@app.get("/days/", response_model=List[schemas.Day])
+
+def read_days(db: Session = Depends(get_db)):
+    return db.query(models.Day).all()
+
+
 @app.put("/rooms/{room_id}", response_model=schemas.Room)
 def update_room(room_id: int, room: schemas.RoomBase, db: Session = Depends(get_db)):
     db_room = db.query(models.Room).filter(models.Room.id == room_id).first()

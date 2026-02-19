@@ -40,6 +40,13 @@ class GoogleSheetsService:
         except Exception as e:
             print(f"Warning: Could not sync rooms from SALAS sheet: {e}")
 
+        # 5. Sync Days (DIAS)
+        try:
+            ws_days = sh.worksheet("DIAS")
+            rows_days = ws_days.get_all_records()
+            self._sync_days(db, rows_days)
+        except Exception as e:
+            print(f"Warning: Could not sync days from DIAS sheet: {e}")
 
         return {"message": "Sincronización completada exitosamente", "rows_processed": len(rows)}
 
@@ -243,3 +250,39 @@ class GoogleSheetsService:
                 db.add(new_room)
         
         db.commit()
+
+    def _sync_days(self, db: Session, rows: list):
+        """
+        Syncs Days based on 'DIA'.
+        Maps:
+        - DIA -> code
+        - DIA_U -> name
+        """
+        days_map = {}
+        
+        for row in rows:
+            code_raw = row.get('DIA')
+            name_raw = row.get('DIA_U')
+            
+            if not code_raw or not name_raw:
+                continue
+                
+            code = str(code_raw).strip()
+            name = str(name_raw).strip()
+            
+            days_map[code] = name
+            
+        for code, name in days_map.items():
+            existing = db.query(models.Day).filter(models.Day.code == code).first()
+            
+            if existing:
+                existing.name = name
+            else:
+                new_day = models.Day(
+                    code=code,
+                    name=name
+                )
+                db.add(new_day)
+        
+        db.commit()
+

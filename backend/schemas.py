@@ -98,3 +98,12 @@ class Schedule(ScheduleBase):
     id: int
     class Config:
         from_attributes = True
+
+class DayBase(BaseModel):
+    code: str
+    name: str
+
+class Day(DayBase):
+    id: int
+    class Config:
+        from_attributes = True

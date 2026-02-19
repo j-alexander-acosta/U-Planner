@@ -74,6 +74,7 @@ export default function App() {
 
 
     const [subjects, setSubjects] = useState([]);
+    const [days, setDays] = useState([]);
     const [isSyncing, setIsSyncing] = useState(false);
 
     const fetchTeachers = async () => {
@@ -114,6 +115,20 @@ export default function App() {
         });
     });
 
+    const [dayColumnFilters, setDayColumnFilters] = useState({
+        name: ''
+    });
+
+    const filteredDays = days.filter(day => {
+        return Object.entries(dayColumnFilters).every(([key, value]) => {
+            if (!value) return true;
+            const searchTerm = value.toLowerCase();
+            const dayValue = String(day[key] || '').toLowerCase();
+            return dayValue.includes(searchTerm);
+        });
+    });
+
+
     const fetchRooms = async () => {
         try {
             const res = await axios.get('/api/rooms/');
@@ -132,6 +147,16 @@ export default function App() {
         }
     };
 
+    const fetchDays = async () => {
+        try {
+            const res = await axios.get('/api/days/');
+            setDays(res.data);
+        } catch (err) {
+            console.error('Error fetching days:', err);
+        }
+    };
+
+
     useEffect(() => {
         if (activeTab === 'teachers') {
             fetchTeachers();
@@ -142,7 +167,11 @@ export default function App() {
         if (activeTab === 'subjects') {
             fetchSubjects();
         }
+        if (activeTab === 'days') {
+            fetchDays();
+        }
     }, [activeTab]);
+
     const [columnFilters, setColumnFilters] = useState({
         plan_year: '',
         career_code: '',
@@ -226,6 +255,7 @@ export default function App() {
             if (activeTab === 'teachers') fetchTeachers();
             if (activeTab === 'rooms') fetchRooms();
             if (activeTab === 'subjects') fetchSubjects();
+            if (activeTab === 'days') fetchDays();
         } catch (error) {
             console.error(error);
             addNotification('Error al sincronizar con Google Sheets', 'error');
@@ -299,6 +329,13 @@ export default function App() {
                         active={activeTab === 'schedules'}
                         onClick={() => setActiveTab('schedules')}
                     />
+                    <SidebarItem
+                        icon={Clock}
+                        label="Días"
+                        active={activeTab === 'days'}
+                        onClick={() => setActiveTab('days')}
+                    />
+
                     <SidebarItem
                         icon={FileText}
                         label="Reportes"
@@ -625,6 +662,54 @@ export default function App() {
                                                 <td className="py-3 font-mono text-blue-400">{r.code}</td>
                                                 <td className="py-3 font-semibold">{r.name}</td>
                                                 <td className="py-3 text-slate-400">{r.capacity}</td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+
+                            </table>
+                        </div>
+                    </div>
+                ) : activeTab === 'days' ? (
+                    <div className="flex flex-col gap-6">
+                        <div className="flex justify-between items-end">
+                            <div>
+                                <h2 className="text-3xl font-bold">Módulo de Días</h2>
+                                <p className="text-slate-400 mt-1">Configuración de días de planificación</p>
+                            </div>
+                        </div>
+
+                        {/* Days List */}
+                        <div className="glass p-6">
+                            <h3 className="text-lg font-bold mb-4">Listado de Días</h3>
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="text-slate-500 text-sm border-b border-slate-800">
+                                        <th className="pb-4 font-medium align-top">
+                                            <div className="flex flex-col gap-2">
+                                                <span>DIA_U</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                    value={dayColumnFilters.name}
+                                                    onChange={(e) => setDayColumnFilters(prev => ({ ...prev, name: e.target.value }))}
+                                                />
+                                            </div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="text-sm">
+                                    {days.length === 0 ? (
+                                        <tr className="border-b border-slate-800/50">
+                                            <td className="py-6 text-center text-slate-500" colSpan="1">
+                                                No hay días registrados.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredDays.map((d) => (
+                                            <tr key={d.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
+                                                <td className="py-3 font-semibold">{d.name}</td>
                                             </tr>
                                         ))
                                     )}

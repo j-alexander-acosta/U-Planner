@@ -107,3 +107,9 @@ class Schedule(Base):
         UniqueConstraint('room_id', 'time_block_id', name='_room_block_uc'),
         UniqueConstraint('teacher_id', 'time_block_id', name='_teacher_block_schedule_uc'),
     )
+
+class Day(Base):
+    __tablename__ = "days"
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String, unique=True, nullable=False) # DIA
+    name = Column(String, nullable=False) # DIA_U
