@@ -74,6 +74,7 @@ export default function App() {
     const [roomsModuleFilter, setRoomsModuleFilter] = useState('Todos');
     const [roomsGroupFilter, setRoomsGroupFilter] = useState('Todos');
     const [dashGroupFilter, setDashGroupFilter] = useState('Todos');
+    const [dashDayFilter, setDashDayFilter] = useState('Todos');
     const [dashModuleFilter, setDashModuleFilter] = useState('Todos');
     const [userRole, setUserRole] = useState('registro'); // 'registro' | 'director'
     const [selectedFile, setSelectedFile] = useState(null);
@@ -1294,14 +1295,14 @@ export default function App() {
                             <div className="flex flex-col gap-6">
                                 <div className="glass p-6 flex flex-col gap-6">
                                     <h3 className="text-xl font-bold">Disponibilidad Salas</h3>
-                                    <div className="flex items-center gap-3 flex-wrap">
+                                    <div className="flex flex-col gap-2">
                                         <div className="relative">
                                             <select
                                                 value={dashGroupFilter}
                                                 onChange={(e) => setDashGroupFilter(e.target.value)}
-                                                className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold appearance-none cursor-pointer pr-8 outline-none"
+                                                className="w-full bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-blue-900/20 appearance-none cursor-pointer pr-10 outline-none"
                                             >
-                                                <option value="Todos">🏢 Todos</option>
+                                                <option value="Todos">🏢 Todos los grupos</option>
                                                 <option value="CCEA">🏢 Aulas A</option>
                                                 <option value="CCEB">🏢 Aulas B</option>
                                                 <option value="CCEC">🏢 Aulas C</option>
@@ -1309,20 +1310,33 @@ export default function App() {
                                                 <option value="CCEE">🏢 Aulas E</option>
                                                 <option value="CCEF">🏢 Aulas F</option>
                                             </select>
-                                            <ChevronRight size={12} className="absolute right-2 top-1/2 -translate-y-1/2 rotate-90 text-white pointer-events-none" />
+                                            <ChevronRight size={16} className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-white pointer-events-none" />
+                                        </div>
+                                        <div className="relative">
+                                            <select
+                                                value={dashDayFilter}
+                                                onChange={(e) => setDashDayFilter(e.target.value)}
+                                                className="w-full bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-blue-900/20 appearance-none cursor-pointer pr-10 outline-none"
+                                            >
+                                                <option value="Todos">📅 Todos los días</option>
+                                                {days.map((day) => (
+                                                    <option key={day.id} value={day.code}>📅 {day.name}</option>
+                                                ))}
+                                            </select>
+                                            <ChevronRight size={16} className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-white pointer-events-none" />
                                         </div>
                                         <div className="relative">
                                             <select
                                                 value={dashModuleFilter}
                                                 onChange={(e) => setDashModuleFilter(e.target.value)}
-                                                className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold appearance-none cursor-pointer pr-8 outline-none"
+                                                className="w-full bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-blue-900/20 appearance-none cursor-pointer pr-10 outline-none"
                                             >
-                                                <option value="Todos">🕒 Todos</option>
+                                                <option value="Todos">🕒 Todos los módulos</option>
                                                 {timeModules.map((mod) => (
-                                                    <option key={mod.id} value={mod.mod_hor}>🕒 M{mod.modulo}</option>
+                                                    <option key={mod.id} value={mod.mod_hor}>🕒 Módulo {mod.modulo} ({mod.rango})</option>
                                                 ))}
                                             </select>
-                                            <ChevronRight size={12} className="absolute right-2 top-1/2 -translate-y-1/2 rotate-90 text-white pointer-events-none" />
+                                            <ChevronRight size={16} className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-white pointer-events-none" />
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-4">
@@ -1335,7 +1349,7 @@ export default function App() {
                                             { prefix: 'CCEF', label: 'Aulas F' },
                                         ].filter(g => dashGroupFilter === 'Todos' || dashGroupFilter === g.prefix).map((group) => {
                                             const groupRooms = rooms.filter(r => r.code.startsWith(group.prefix));
-                                            const filteredDays = selectedDay === 'Todos' ? days : days.filter(d => d.code === selectedDay);
+                                            const filteredDays = dashDayFilter === 'Todos' ? days : days.filter(d => d.code === dashDayFilter);
                                             const filteredSchedules = academicSchedules.filter(s =>
                                                 filteredDays.some(d => d.code === s.dia) &&
                                                 (dashModuleFilter === 'Todos' || s.modulo_horario === dashModuleFilter)
@@ -1367,31 +1381,6 @@ export default function App() {
                                     </div>
                                 </div>
 
-                                <div className="glass p-6 flex flex-col gap-6">
-                                    <h3 className="text-xl font-bold">Disponibilidad Laboratorios</h3>
-                                    <div className="flex flex-col gap-4">
-                                        {[
-                                            { name: 'Computación', usage: 85 },
-                                            { name: 'Ciencias Básicas', usage: 45 },
-                                            { name: 'Salud / Simulación', usage: 60 },
-                                            { name: 'Talleres', usage: 30 }
-                                        ].map((lab) => (
-                                            <div key={lab.name} className="flex flex-col gap-2">
-                                                <div className="flex justify-between text-sm">
-                                                    <span className="text-slate-400">{lab.name}</span>
-                                                    <span className="font-bold">{lab.usage}%</span>
-                                                </div>
-                                                <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-                                                    <motion.div
-                                                        initial={{ width: 0 }}
-                                                        animate={{ width: `${lab.usage}%` }}
-                                                        className={`h-full ${lab.usage > 80 ? 'bg-red-500' : 'bg-blue-500'}`}
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </>
