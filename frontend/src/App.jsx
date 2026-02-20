@@ -70,6 +70,7 @@ export default function App() {
     const [selectedDay, setSelectedDay] = useState('Todos');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [roomsSubTab, setRoomsSubTab] = useState('listado');
+    const [roomsDayFilter, setRoomsDayFilter] = useState('Todos');
     const [userRole, setUserRole] = useState('registro'); // 'registro' | 'director'
     const [selectedFile, setSelectedFile] = useState(null);
     const [teachers, setTeachers] = useState([]);
@@ -747,87 +748,109 @@ export default function App() {
                             </div>
                         ) : (
                             <div className="flex flex-col gap-6">
-                                {/* Aulas A Group */}
-                                <div className="glass p-6">
-                                    <div className="flex items-center justify-between mb-6">
-                                        <div>
-                                            <h3 className="text-lg font-bold">Aulas A</h3>
-                                            <p className="text-slate-400 text-sm mt-1">
-                                                {(() => {
-                                                    const aulasACodes = ['CCEA01', 'CCEA02', 'CCEA03', 'CCEA04', 'CCEA05', 'CCEA06', 'CCEA07', 'CCEA08', 'CCEA09', 'CCEA10', 'CCEA11', 'CCEA12', 'CCEA13', 'CCEA14', 'CCEA15', 'CCEA16', 'CCEA17', 'CCEA18'];
-                                                    const aulasARooms = rooms.filter(r => aulasACodes.includes(r.code));
-                                                    return `${aulasARooms.length} salas registradas`;
-                                                })()}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Day columns */}
-                                    <div className="grid grid-cols-5 gap-4">
-                                        {days.map((day) => {
-                                            const aulasACodes = ['CCEA01', 'CCEA02', 'CCEA03', 'CCEA04', 'CCEA05', 'CCEA06', 'CCEA07', 'CCEA08', 'CCEA09', 'CCEA10', 'CCEA11', 'CCEA12', 'CCEA13', 'CCEA14', 'CCEA15', 'CCEA16', 'CCEA17', 'CCEA18'];
-                                            const aulasARooms = rooms.filter(r => aulasACodes.includes(r.code));
-                                            const totalRooms = aulasARooms.length;
-
-                                            // Count how many rooms are occupied on this day
-                                            const occupiedRooms = aulasARooms.filter(room => {
-                                                return academicSchedules.some(s =>
-                                                    s.dia === day.code &&
-                                                    s.sala && s.sala.toUpperCase().includes(room.name.toUpperCase())
-                                                );
-                                            }).length;
-
-                                            const percentage = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
-
-                                            return (
-                                                <div key={day.id} className="flex flex-col gap-3 p-4 rounded-xl bg-slate-800/30 border border-slate-700/50">
-                                                    <div className="text-center">
-                                                        <span className="text-sm font-bold text-blue-400">{day.name}</span>
-                                                    </div>
-                                                    <div className="flex flex-col items-center gap-2">
-                                                        <div className="text-2xl font-bold">{percentage}%</div>
-                                                        <div className="text-xs text-slate-400">{occupiedRooms}/{totalRooms} salas</div>
-                                                    </div>
-                                                    <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-                                                        <motion.div
-                                                            initial={{ width: 0 }}
-                                                            animate={{ width: `${percentage}%` }}
-                                                            className={`h-full rounded-full ${percentage > 80 ? 'bg-red-500' :
-                                                                    percentage > 50 ? 'bg-amber-500' :
-                                                                        'bg-emerald-500'
-                                                                }`}
-                                                        />
-                                                    </div>
-
-                                                    {/* Individual rooms */}
-                                                    <div className="flex flex-col gap-1 mt-2">
-                                                        {aulasARooms.map(room => {
-                                                            const isOccupied = academicSchedules.some(s =>
-                                                                s.dia === day.code &&
-                                                                s.sala && s.sala.toUpperCase().includes(room.name.toUpperCase())
-                                                            );
-                                                            const modulesUsed = academicSchedules.filter(s =>
-                                                                s.dia === day.code &&
-                                                                s.sala && s.sala.toUpperCase().includes(room.name.toUpperCase())
-                                                            ).length;
-                                                            return (
-                                                                <div key={room.id} className={`flex items-center justify-between text-xs px-2 py-1 rounded ${isOccupied ? 'bg-red-500/10 border border-red-500/20' : 'bg-emerald-500/10 border border-emerald-500/20'
-                                                                    }`}>
-                                                                    <span className={isOccupied ? 'text-red-400' : 'text-emerald-400'}>
-                                                                        {room.name}
-                                                                    </span>
-                                                                    <span className={`font-mono ${isOccupied ? 'text-red-400' : 'text-emerald-400'}`}>
-                                                                        {isOccupied ? `${modulesUsed} mod` : 'Libre'}
-                                                                    </span>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
+                                {/* Day Selector */}
+                                <div className="flex items-center gap-4">
+                                    <div className="relative">
+                                        <select
+                                            value={roomsDayFilter}
+                                            onChange={(e) => setRoomsDayFilter(e.target.value)}
+                                            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-blue-900/20 appearance-none cursor-pointer pr-10 outline-none"
+                                        >
+                                            <option value="Todos">📅 Todos los días</option>
+                                            {days.map((day) => (
+                                                <option key={day.id} value={day.code}>📅 {day.name}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronRight size={16} className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-white pointer-events-none" />
                                     </div>
                                 </div>
+
+                                {/* Aulas A Group */}
+                                {(() => {
+                                    const aulasACodes = ['CCEA01', 'CCEA02', 'CCEA03', 'CCEA04', 'CCEA05', 'CCEA06', 'CCEA07', 'CCEA08', 'CCEA09', 'CCEA10', 'CCEA11', 'CCEA12', 'CCEA13', 'CCEA14', 'CCEA15', 'CCEA16', 'CCEA17', 'CCEA18'];
+                                    const aulasARooms = rooms.filter(r => aulasACodes.includes(r.code));
+                                    const totalModules = 13;
+                                    const filteredDays = roomsDayFilter === 'Todos' ? days : days.filter(d => d.code === roomsDayFilter);
+
+                                    // Calculate group occupancy
+                                    const totalRooms = aulasARooms.length;
+                                    const occupiedRooms = aulasARooms.filter(room =>
+                                        academicSchedules.some(s =>
+                                            filteredDays.some(d => d.code === s.dia) &&
+                                            s.sala && s.sala.toUpperCase().includes(room.name.toUpperCase())
+                                        )
+                                    ).length;
+                                    const groupPercentage = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+
+                                    return (
+                                        <div className="glass p-6">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div>
+                                                    <h3 className="text-lg font-bold">Aulas A</h3>
+                                                    <p className="text-slate-400 text-sm mt-1">{aulasARooms.length} salas registradas — {occupiedRooms}/{totalRooms} ocupadas ({groupPercentage}%)</p>
+                                                </div>
+                                                <div className="text-3xl font-bold">
+                                                    <span className={groupPercentage > 80 ? 'text-red-400' : groupPercentage > 50 ? 'text-amber-400' : 'text-emerald-400'}>
+                                                        {groupPercentage}%
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden mb-6">
+                                                <motion.div
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${groupPercentage}%` }}
+                                                    className={`h-full rounded-full ${groupPercentage > 80 ? 'bg-red-500' :
+                                                            groupPercentage > 50 ? 'bg-amber-500' :
+                                                                'bg-emerald-500'
+                                                        }`}
+                                                />
+                                            </div>
+
+                                            {/* Room grid */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                {aulasARooms.map(room => {
+                                                    const modulesUsed = academicSchedules.filter(s =>
+                                                        filteredDays.some(d => d.code === s.dia) &&
+                                                        s.sala && s.sala.toUpperCase().includes(room.name.toUpperCase())
+                                                    ).length;
+                                                    const roomPercentage = Math.round((modulesUsed / (totalModules * filteredDays.length)) * 100);
+                                                    const isOccupied = modulesUsed > 0;
+
+                                                    return (
+                                                        <div key={room.id} className={`flex items-center gap-3 p-3 rounded-xl border ${isOccupied ? 'bg-slate-800/40 border-slate-700/50' : 'bg-emerald-500/5 border-emerald-500/20'
+                                                            }`}>
+                                                            <div className={`w-3 h-3 rounded-full flex-shrink-0 ${roomPercentage > 80 ? 'bg-red-500' :
+                                                                    roomPercentage > 50 ? 'bg-amber-500' :
+                                                                        isOccupied ? 'bg-blue-500' : 'bg-emerald-500'
+                                                                }`} />
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex justify-between items-center">
+                                                                    <span className="text-sm font-semibold">{room.name}</span>
+                                                                    <span className={`text-xs font-mono font-bold ${roomPercentage > 80 ? 'text-red-400' :
+                                                                            roomPercentage > 50 ? 'text-amber-400' :
+                                                                                isOccupied ? 'text-blue-400' : 'text-emerald-400'
+                                                                        }`}>
+                                                                        {isOccupied ? `${roomPercentage}% (${modulesUsed} mod)` : 'Libre'}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden mt-1">
+                                                                    <motion.div
+                                                                        initial={{ width: 0 }}
+                                                                        animate={{ width: `${roomPercentage}%` }}
+                                                                        className={`h-full rounded-full ${roomPercentage > 80 ? 'bg-red-500' :
+                                                                                roomPercentage > 50 ? 'bg-amber-500' :
+                                                                                    isOccupied ? 'bg-blue-500' : 'bg-emerald-500'
+                                                                            }`}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         )}
                     </div>
