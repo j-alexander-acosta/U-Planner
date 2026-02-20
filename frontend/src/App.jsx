@@ -415,7 +415,7 @@ export default function App() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {activeTab === 'dashboard' ? (
+                        {activeTab === 'dashboard' && (
                             <div className="relative">
                                 <select
                                     value={selectedDay}
@@ -429,14 +429,6 @@ export default function App() {
                                 </select>
                                 <ChevronRight size={16} className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-white pointer-events-none" />
                             </div>
-                        ) : (
-                            <button
-                                onClick={() => setIsModalOpen(true)}
-                                className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-semibold shadow-lg shadow-blue-900/20"
-                            >
-                                <Plus size={20} />
-                                <span>Nuevo Horario</span>
-                            </button>
                         )}
                     </div>
                 </header>
