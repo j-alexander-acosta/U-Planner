@@ -415,14 +415,6 @@ export default function App() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <div className="glass flex items-center gap-3 px-4 py-2 border border-slate-700">
-                            <Search size={18} className="text-slate-500" />
-                            <input
-                                type="text"
-                                placeholder="Buscar..."
-                                className="bg-transparent border-none outline-none text-sm w-48"
-                            />
-                        </div>
                         {activeTab === 'dashboard' ? (
                             <div className="relative">
                                 <select
