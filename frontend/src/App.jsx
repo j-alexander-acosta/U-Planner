@@ -67,6 +67,7 @@ const StatCard = ({ label, value, trend, icon: Icon }) => (
 export default function App() {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [notifications, setNotifications] = useState([]);
+    const [selectedDay, setSelectedDay] = useState('Todos');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [userRole, setUserRole] = useState('registro'); // 'registro' | 'director'
     const [selectedFile, setSelectedFile] = useState(null);
@@ -422,13 +423,31 @@ export default function App() {
                                 className="bg-transparent border-none outline-none text-sm w-48"
                             />
                         </div>
-                        <button
-                            onClick={() => setIsModalOpen(true)}
-                            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-semibold shadow-lg shadow-blue-900/20"
-                        >
-                            <Plus size={20} />
-                            <span>Nuevo Horario</span>
-                        </button>
+                        {activeTab === 'dashboard' ? (
+                            <div className="relative">
+                                <select
+                                    value={selectedDay}
+                                    onChange={(e) => setSelectedDay(e.target.value)}
+                                    className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-blue-900/20 appearance-none cursor-pointer pr-10 outline-none"
+                                >
+                                    <option value="Todos">📅 Todos los días</option>
+                                    <option value="1 Lunes">📅 Lunes</option>
+                                    <option value="2 Martes">📅 Martes</option>
+                                    <option value="3 Miércoles">📅 Miércoles</option>
+                                    <option value="4 Jueves">📅 Jueves</option>
+                                    <option value="5 Viernes">📅 Viernes</option>
+                                </select>
+                                <ChevronRight size={16} className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-white pointer-events-none" />
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => setIsModalOpen(true)}
+                                className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-semibold shadow-lg shadow-blue-900/20"
+                            >
+                                <Plus size={20} />
+                                <span>Nuevo Horario</span>
+                            </button>
+                        )}
                     </div>
                 </header>
 
