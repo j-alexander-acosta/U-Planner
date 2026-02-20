@@ -769,7 +769,7 @@ export default function App() {
                                         <select
                                             value={roomsModuleFilter}
                                             onChange={(e) => setRoomsModuleFilter(e.target.value)}
-                                            className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-slate-900/20 appearance-none cursor-pointer pr-10 outline-none"
+                                            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-blue-900/20 appearance-none cursor-pointer pr-10 outline-none"
                                         >
                                             <option value="Todos">🕒 Todos los módulos</option>
                                             {timeModules.map((mod) => (
