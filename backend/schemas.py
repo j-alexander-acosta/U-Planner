@@ -126,6 +126,7 @@ class AcademicScheduleBase(BaseModel):
     dia: Optional[str] = None
     codramo: Optional[str] = None
     modulo_horario: Optional[str] = None
+    sala: Optional[str] = None
     seccion: Optional[str] = None
     asignatura: Optional[str] = None
     docente: Optional[str] = None

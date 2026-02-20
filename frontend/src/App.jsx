@@ -123,11 +123,13 @@ export default function App() {
         nivel: '',
         dia: '',
         modulo_horario: '',
+        sala: '',
         seccion: '',
         codramo: '',
         asignatura: '',
         docente: ''
     });
+
 
 
 
@@ -862,6 +864,18 @@ export default function App() {
                                                 />
                                             </div>
                                         </th>
+                                        <th className="pb-4 font-medium align-top text-left px-3">
+                                            <div className="flex flex-col gap-2 items-start">
+                                                <span>SALA</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filtrar..."
+                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                    value={academicScheduleColumnFilters.sala}
+                                                    onChange={(e) => setAcademicScheduleColumnFilters({ ...academicScheduleColumnFilters, sala: e.target.value })}
+                                                />
+                                            </div>
+                                        </th>
                                         <th className="pb-4 font-medium align-top text-center px-3">
                                             <div className="flex flex-col gap-2 items-center">
                                                 <span>SECCIÓN</span>
@@ -916,7 +930,7 @@ export default function App() {
                                 <tbody className="text-sm">
                                     {filteredAcademicSchedules.length === 0 ? (
                                         <tr className="border-b border-slate-800/50">
-                                            <td className="py-6 text-center text-slate-500" colSpan="8">
+                                            <td className="py-6 text-center text-slate-500" colSpan="9">
 
                                                 No hay horarios registrados.
                                             </td>
@@ -929,6 +943,7 @@ export default function App() {
                                                 <td className="py-3 px-3 text-center">{s.nivel}</td>
                                                 <td className="py-3 px-3">{s.dia}</td>
                                                 <td className="py-3 px-3 text-xs font-mono">{s.modulo_horario}</td>
+                                                <td className="py-3 px-3 text-xs">{s.sala}</td>
 
                                                 <td className="py-3 px-3 text-center font-bold">{s.seccion}</td>
                                                 <td className="py-3 px-3 font-mono text-xs text-slate-400">{s.codramo}</td>

@@ -344,6 +344,7 @@ class GoogleSheetsService:
                 dia=str(row.get('DIA', '')).strip(),
                 codramo=str(row.get('CODRAMO', '')).strip(),
                 modulo_horario=str(row.get('MODULO Y HORARIO', '')).strip(),
+                sala=str(row.get('SALA, CANCHA O LABORATORIO', '')).strip(),
                 seccion=str(row.get('SECCION', '')).strip(),
                 asignatura=str(row.get('ASIGNATURA', '')).strip(),
                 docente=str(row.get('DOCENTE', '')).strip()

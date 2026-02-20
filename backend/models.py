@@ -130,6 +130,7 @@ class AcademicSchedule(Base):
     dia = Column(String, nullable=True) # DIA
     codramo = Column(String, nullable=True) # CODRAMO
     modulo_horario = Column(String, nullable=True) # MODULO Y HORARIO
+    sala = Column(String, nullable=True) # SALA, CANCHA O LABORATORIO
     seccion = Column(String, nullable=True)
     asignatura = Column(String, nullable=True)
     docente = Column(String, nullable=True)
