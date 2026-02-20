@@ -73,6 +73,8 @@ export default function App() {
     const [roomsDayFilter, setRoomsDayFilter] = useState('Todos');
     const [roomsModuleFilter, setRoomsModuleFilter] = useState('Todos');
     const [roomsGroupFilter, setRoomsGroupFilter] = useState('Todos');
+    const [dashGroupFilter, setDashGroupFilter] = useState('Todos');
+    const [dashModuleFilter, setDashModuleFilter] = useState('Todos');
     const [userRole, setUserRole] = useState('registro'); // 'registro' | 'director'
     const [selectedFile, setSelectedFile] = useState(null);
     const [teachers, setTeachers] = useState([]);
@@ -1292,6 +1294,37 @@ export default function App() {
                             <div className="flex flex-col gap-6">
                                 <div className="glass p-6 flex flex-col gap-6">
                                     <h3 className="text-xl font-bold">Disponibilidad Salas</h3>
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                        <div className="relative">
+                                            <select
+                                                value={dashGroupFilter}
+                                                onChange={(e) => setDashGroupFilter(e.target.value)}
+                                                className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold appearance-none cursor-pointer pr-8 outline-none"
+                                            >
+                                                <option value="Todos">🏢 Todos</option>
+                                                <option value="CCEA">🏢 Aulas A</option>
+                                                <option value="CCEB">🏢 Aulas B</option>
+                                                <option value="CCEC">🏢 Aulas C</option>
+                                                <option value="CCED">🏢 Aulas D</option>
+                                                <option value="CCEE">🏢 Aulas E</option>
+                                                <option value="CCEF">🏢 Aulas F</option>
+                                            </select>
+                                            <ChevronRight size={12} className="absolute right-2 top-1/2 -translate-y-1/2 rotate-90 text-white pointer-events-none" />
+                                        </div>
+                                        <div className="relative">
+                                            <select
+                                                value={dashModuleFilter}
+                                                onChange={(e) => setDashModuleFilter(e.target.value)}
+                                                className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold appearance-none cursor-pointer pr-8 outline-none"
+                                            >
+                                                <option value="Todos">🕒 Todos</option>
+                                                {timeModules.map((mod) => (
+                                                    <option key={mod.id} value={mod.mod_hor}>🕒 M{mod.modulo}</option>
+                                                ))}
+                                            </select>
+                                            <ChevronRight size={12} className="absolute right-2 top-1/2 -translate-y-1/2 rotate-90 text-white pointer-events-none" />
+                                        </div>
+                                    </div>
                                     <div className="flex flex-col gap-4">
                                         {[
                                             { prefix: 'CCEA', label: 'Aulas A' },
@@ -1300,11 +1333,12 @@ export default function App() {
                                             { prefix: 'CCED', label: 'Aulas D' },
                                             { prefix: 'CCEE', label: 'Aulas E' },
                                             { prefix: 'CCEF', label: 'Aulas F' },
-                                        ].map((group) => {
+                                        ].filter(g => dashGroupFilter === 'Todos' || dashGroupFilter === g.prefix).map((group) => {
                                             const groupRooms = rooms.filter(r => r.code.startsWith(group.prefix));
                                             const filteredDays = selectedDay === 'Todos' ? days : days.filter(d => d.code === selectedDay);
                                             const filteredSchedules = academicSchedules.filter(s =>
-                                                filteredDays.some(d => d.code === s.dia)
+                                                filteredDays.some(d => d.code === s.dia) &&
+                                                (dashModuleFilter === 'Todos' || s.modulo_horario === dashModuleFilter)
                                             );
                                             const totalRooms = groupRooms.length;
                                             const occupiedRooms = groupRooms.filter(room =>
