@@ -69,6 +69,7 @@ export default function App() {
     const [notifications, setNotifications] = useState([]);
     const [selectedDay, setSelectedDay] = useState('Todos');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [roomsSubTab, setRoomsSubTab] = useState('listado');
     const [userRole, setUserRole] = useState('registro'); // 'registro' | 'director'
     const [selectedFile, setSelectedFile] = useState(null);
     const [teachers, setTeachers] = useState([]);
@@ -655,74 +656,99 @@ export default function App() {
                                 <h2 className="text-3xl font-bold">Módulo de Salas</h2>
                                 <p className="text-slate-400 mt-1">Gestión de salas, laboratorios y aulas</p>
                             </div>
-
-
                         </div>
 
-                        {/* Room List */}
-                        <div className="glass p-6">
-                            <h3 className="text-lg font-bold mb-4">Listado de Salas</h3>
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="text-slate-500 text-sm border-b border-slate-800">
-                                        <th className="pb-4 font-medium align-top">
-                                            <div className="flex flex-col gap-2">
-                                                <span>CODSALA</span>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Filtrar..."
-                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
-                                                    value={roomColumnFilters.code}
-                                                    onChange={(e) => setRoomColumnFilters(prev => ({ ...prev, code: e.target.value }))}
-                                                />
-                                            </div>
-                                        </th>
-                                        <th className="pb-4 font-medium align-top">
-                                            <div className="flex flex-col gap-2">
-                                                <span>NOMBRE</span>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Filtrar..."
-                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
-                                                    value={roomColumnFilters.name}
-                                                    onChange={(e) => setRoomColumnFilters(prev => ({ ...prev, name: e.target.value }))}
-                                                />
-                                            </div>
-                                        </th>
-                                        <th className="pb-4 font-medium align-top">
-                                            <div className="flex flex-col gap-2">
-                                                <span>CAPACIDAD</span>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Filtrar..."
-                                                    className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
-                                                    value={roomColumnFilters.capacity}
-                                                    onChange={(e) => setRoomColumnFilters(prev => ({ ...prev, capacity: e.target.value }))}
-                                                />
-                                            </div>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-sm">
-                                    {rooms.length === 0 ? (
-                                        <tr className="border-b border-slate-800/50">
-                                            <td className="py-6 text-center text-slate-500" colSpan="3">
-                                                No hay salas registradas.
-                                            </td>
+                        {/* Sub-tabs */}
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setRoomsSubTab('listado')}
+                                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${roomsSubTab === 'listado'
+                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
+                                        : 'glass text-slate-400 hover:text-white border border-slate-700'
+                                    }`}
+                            >
+                                Listado de Salas
+                            </button>
+                            <button
+                                onClick={() => setRoomsSubTab('disponibilidad')}
+                                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${roomsSubTab === 'disponibilidad'
+                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
+                                        : 'glass text-slate-400 hover:text-white border border-slate-700'
+                                    }`}
+                            >
+                                Disponibilidad Salas
+                            </button>
+                        </div>
+
+                        {roomsSubTab === 'listado' ? (
+                            <div className="glass p-6">
+                                <h3 className="text-lg font-bold mb-4">Listado de Salas</h3>
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="text-slate-500 text-sm border-b border-slate-800">
+                                            <th className="pb-4 font-medium align-top">
+                                                <div className="flex flex-col gap-2">
+                                                    <span>CODSALA</span>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Filtrar..."
+                                                        className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                        value={roomColumnFilters.code}
+                                                        onChange={(e) => setRoomColumnFilters(prev => ({ ...prev, code: e.target.value }))}
+                                                    />
+                                                </div>
+                                            </th>
+                                            <th className="pb-4 font-medium align-top">
+                                                <div className="flex flex-col gap-2">
+                                                    <span>NOMBRE</span>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Filtrar..."
+                                                        className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                        value={roomColumnFilters.name}
+                                                        onChange={(e) => setRoomColumnFilters(prev => ({ ...prev, name: e.target.value }))}
+                                                    />
+                                                </div>
+                                            </th>
+                                            <th className="pb-4 font-medium align-top">
+                                                <div className="flex flex-col gap-2">
+                                                    <span>CAPACIDAD</span>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Filtrar..."
+                                                        className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
+                                                        value={roomColumnFilters.capacity}
+                                                        onChange={(e) => setRoomColumnFilters(prev => ({ ...prev, capacity: e.target.value }))}
+                                                    />
+                                                </div>
+                                            </th>
                                         </tr>
-                                    ) : (
-                                        filteredRooms.map((r) => (
-                                            <tr key={r.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
-                                                <td className="py-3 font-mono text-blue-400">{r.code}</td>
-                                                <td className="py-3 font-semibold">{r.name}</td>
-                                                <td className="py-3 text-slate-400">{r.capacity}</td>
+                                    </thead>
+                                    <tbody className="text-sm">
+                                        {rooms.length === 0 ? (
+                                            <tr className="border-b border-slate-800/50">
+                                                <td className="py-6 text-center text-slate-500" colSpan="3">
+                                                    No hay salas registradas.
+                                                </td>
                                             </tr>
-                                        ))
-                                    )}
-                                </tbody>
-
-                            </table>
-                        </div>
+                                        ) : (
+                                            filteredRooms.map((r) => (
+                                                <tr key={r.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
+                                                    <td className="py-3 font-mono text-blue-400">{r.code}</td>
+                                                    <td className="py-3 font-semibold">{r.name}</td>
+                                                    <td className="py-3 text-slate-400">{r.capacity}</td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="glass p-6">
+                                <h3 className="text-lg font-bold mb-4">Disponibilidad de Salas</h3>
+                                <p className="text-slate-400">Contenido próximamente...</p>
+                            </div>
+                        )}
                     </div>
                 ) : activeTab === 'days' ? (
                     <div className="flex flex-col gap-6">
