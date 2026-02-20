@@ -782,8 +782,7 @@ export default function App() {
 
                                 {/* Aulas A Group */}
                                 {(() => {
-                                    const aulasACodes = ['CCEA01', 'CCEA02', 'CCEA03', 'CCEA04', 'CCEA05', 'CCEA06', 'CCEA07', 'CCEA08', 'CCEA09', 'CCEA10', 'CCEA11', 'CCEA12', 'CCEA13', 'CCEA14', 'CCEA15', 'CCEA16', 'CCEA17', 'CCEA18'];
-                                    const aulasARooms = rooms.filter(r => aulasACodes.includes(r.code));
+                                    const aulasARooms = rooms.filter(r => r.code.startsWith('CCEA'));
                                     const totalModules = 13;
                                     const filteredDays = roomsDayFilter === 'Todos' ? days : days.filter(d => d.code === roomsDayFilter);
                                     const filteredSchedules = academicSchedules.filter(s =>
@@ -907,8 +906,8 @@ export default function App() {
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${groupPercentage}%` }}
                                                     className={`h-full rounded-full ${groupPercentage > 80 ? 'bg-red-500' :
-                                                            groupPercentage > 50 ? 'bg-amber-500' :
-                                                                'bg-emerald-500'
+                                                        groupPercentage > 50 ? 'bg-amber-500' :
+                                                            'bg-emerald-500'
                                                         }`}
                                                 />
                                             </div>
