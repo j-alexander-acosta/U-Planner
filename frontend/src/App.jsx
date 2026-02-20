@@ -808,16 +808,16 @@ export default function App() {
                                                     <p className="text-slate-400 text-sm mt-1">{aulasARooms.length} salas registradas — {occupiedRooms}/{totalRooms} ocupadas ({groupPercentage}%)</p>
                                                 </div>
                                                 <div className="text-3xl font-bold">
-                                                    <span className={groupPercentage > 80 ? 'text-red-400' : groupPercentage > 50 ? 'text-amber-400' : 'text-emerald-400'}>
+                                                    <span className={groupPercentage > 80 ? 'text-violet-400' : groupPercentage > 50 ? 'text-amber-400' : 'text-emerald-400'}>
                                                         {groupPercentage}%
                                                     </span>
                                                 </div>
                                             </div>
-                                            <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden mb-6">
+                                            <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden mb-6">
                                                 <motion.div
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${groupPercentage}%` }}
-                                                    className={`h-full rounded-full ${groupPercentage > 80 ? 'bg-red-500' :
+                                                    className={`h-full rounded-full ${groupPercentage > 80 ? 'bg-violet-500' :
                                                         groupPercentage > 50 ? 'bg-amber-500' :
                                                             'bg-emerald-500'
                                                         }`}
@@ -836,25 +836,25 @@ export default function App() {
                                                     return (
                                                         <div key={room.id} className={`flex items-center gap-3 p-3 rounded-xl border ${isOccupied ? 'bg-slate-800/40 border-slate-700/50' : 'bg-emerald-500/5 border-emerald-500/20'
                                                             }`}>
-                                                            <div className={`w-3 h-3 rounded-full flex-shrink-0 ${roomPercentage > 80 ? 'bg-red-500' :
+                                                            <div className={`w-3 h-3 rounded-full flex-shrink-0 ${roomPercentage > 80 ? 'bg-violet-500' :
                                                                 roomPercentage > 50 ? 'bg-amber-500' :
                                                                     isOccupied ? 'bg-blue-500' : 'bg-emerald-500'
                                                                 }`} />
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex justify-between items-center">
                                                                     <span className="text-sm font-semibold"><span className="font-mono text-blue-400">{room.code}</span> — {room.name}</span>
-                                                                    <span className={`text-xs font-mono font-bold ${roomPercentage > 80 ? 'text-red-400' :
+                                                                    <span className={`text-xs font-mono font-bold ${roomPercentage > 80 ? 'text-violet-400' :
                                                                         roomPercentage > 50 ? 'text-amber-400' :
                                                                             isOccupied ? 'text-blue-400' : 'text-emerald-400'
                                                                         }`}>
                                                                         {isOccupied ? `${roomPercentage}% (${modulesUsed} mod)` : 'Libre'}
                                                                     </span>
                                                                 </div>
-                                                                <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden mt-1.5">
+                                                                <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden mt-1.5">
                                                                     <motion.div
                                                                         initial={{ width: 0 }}
                                                                         animate={{ width: `${roomPercentage}%` }}
-                                                                        className={`h-full rounded-full ${roomPercentage > 80 ? 'bg-red-500' :
+                                                                        className={`h-full rounded-full ${roomPercentage > 80 ? 'bg-violet-500' :
                                                                             roomPercentage > 50 ? 'bg-amber-500' :
                                                                                 isOccupied ? 'bg-blue-500' : 'bg-emerald-500'
                                                                             }`}
@@ -896,16 +896,16 @@ export default function App() {
                                                     <p className="text-slate-400 text-sm mt-1">{aulasBRooms.length} salas registradas — {occupiedRooms}/{totalRooms} ocupadas ({groupPercentage}%)</p>
                                                 </div>
                                                 <div className="text-3xl font-bold">
-                                                    <span className={groupPercentage > 80 ? 'text-red-400' : groupPercentage > 50 ? 'text-amber-400' : 'text-emerald-400'}>
+                                                    <span className={groupPercentage > 80 ? 'text-violet-400' : groupPercentage > 50 ? 'text-amber-400' : 'text-emerald-400'}>
                                                         {groupPercentage}%
                                                     </span>
                                                 </div>
                                             </div>
-                                            <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden mb-6">
+                                            <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden mb-6">
                                                 <motion.div
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${groupPercentage}%` }}
-                                                    className={`h-full rounded-full ${groupPercentage > 80 ? 'bg-red-500' :
+                                                    className={`h-full rounded-full ${groupPercentage > 80 ? 'bg-violet-500' :
                                                         groupPercentage > 50 ? 'bg-amber-500' :
                                                             'bg-emerald-500'
                                                         }`}
@@ -923,25 +923,25 @@ export default function App() {
                                                     return (
                                                         <div key={room.id} className={`flex items-center gap-3 p-3 rounded-xl border ${isOccupied ? 'bg-slate-800/40 border-slate-700/50' : 'bg-emerald-500/5 border-emerald-500/20'
                                                             }`}>
-                                                            <div className={`w-3 h-3 rounded-full flex-shrink-0 ${roomPercentage > 80 ? 'bg-red-500' :
+                                                            <div className={`w-3 h-3 rounded-full flex-shrink-0 ${roomPercentage > 80 ? 'bg-violet-500' :
                                                                 roomPercentage > 50 ? 'bg-amber-500' :
                                                                     isOccupied ? 'bg-blue-500' : 'bg-emerald-500'
                                                                 }`} />
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex justify-between items-center">
                                                                     <span className="text-sm font-semibold"><span className="font-mono text-blue-400">{room.code}</span> — {room.name}</span>
-                                                                    <span className={`text-xs font-mono font-bold ${roomPercentage > 80 ? 'text-red-400' :
+                                                                    <span className={`text-xs font-mono font-bold ${roomPercentage > 80 ? 'text-violet-400' :
                                                                         roomPercentage > 50 ? 'text-amber-400' :
                                                                             isOccupied ? 'text-blue-400' : 'text-emerald-400'
                                                                         }`}>
                                                                         {isOccupied ? `${roomPercentage}% (${modulesUsed} mod)` : 'Libre'}
                                                                     </span>
                                                                 </div>
-                                                                <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden mt-1.5">
+                                                                <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden mt-1.5">
                                                                     <motion.div
                                                                         initial={{ width: 0 }}
                                                                         animate={{ width: `${roomPercentage}%` }}
-                                                                        className={`h-full rounded-full ${roomPercentage > 80 ? 'bg-red-500' :
+                                                                        className={`h-full rounded-full ${roomPercentage > 80 ? 'bg-violet-500' :
                                                                             roomPercentage > 50 ? 'bg-amber-500' :
                                                                                 isOccupied ? 'bg-blue-500' : 'bg-emerald-500'
                                                                             }`}
