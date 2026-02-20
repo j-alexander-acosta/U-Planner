@@ -431,11 +431,9 @@ export default function App() {
                                     className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-blue-900/20 appearance-none cursor-pointer pr-10 outline-none"
                                 >
                                     <option value="Todos">📅 Todos los días</option>
-                                    <option value="1 Lunes">📅 Lunes</option>
-                                    <option value="2 Martes">📅 Martes</option>
-                                    <option value="3 Miércoles">📅 Miércoles</option>
-                                    <option value="4 Jueves">📅 Jueves</option>
-                                    <option value="5 Viernes">📅 Viernes</option>
+                                    {days.map((day) => (
+                                        <option key={day.id} value={day.code}>📅 {day.name}</option>
+                                    ))}
                                 </select>
                                 <ChevronRight size={16} className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-white pointer-events-none" />
                             </div>
