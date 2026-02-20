@@ -153,8 +153,9 @@ def read_time_modules(db: Session = Depends(get_db)):
     return db.query(models.TimeModule).all()
 
 @app.get("/academic-schedules/", response_model=List[schemas.AcademicSchedule])
-def read_academic_schedules(db: Session = Depends(get_db)):
-    return db.query(models.AcademicSchedule).all()
+def read_academic_schedules(skip: int = 0, limit: int = 5000, db: Session = Depends(get_db)):
+    return db.query(models.AcademicSchedule).offset(skip).limit(limit).all()
+
 
 
 
