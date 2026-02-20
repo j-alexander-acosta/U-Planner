@@ -817,10 +817,7 @@ export default function App() {
                                                 <motion.div
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${groupPercentage}%` }}
-                                                    className={`h-full rounded-full ${groupPercentage > 80 ? 'bg-violet-500' :
-                                                        groupPercentage > 50 ? 'bg-amber-500' :
-                                                            'bg-emerald-500'
-                                                        }`}
+                                                    style={{ height: '100%', borderRadius: '9999px', backgroundColor: groupPercentage > 80 ? '#8b5cf6' : groupPercentage > 50 ? '#f59e0b' : '#10b981' }}
                                                 />
                                             </div>
 
@@ -854,10 +851,7 @@ export default function App() {
                                                                     <motion.div
                                                                         initial={{ width: 0 }}
                                                                         animate={{ width: `${roomPercentage}%` }}
-                                                                        className={`h-full rounded-full ${roomPercentage > 80 ? 'bg-violet-500' :
-                                                                            roomPercentage > 50 ? 'bg-amber-500' :
-                                                                                isOccupied ? 'bg-blue-500' : 'bg-emerald-500'
-                                                                            }`}
+                                                                        style={{ height: '100%', borderRadius: '9999px', backgroundColor: roomPercentage > 80 ? '#8b5cf6' : roomPercentage > 50 ? '#f59e0b' : isOccupied ? '#3b82f6' : '#10b981' }}
                                                                     />
                                                                 </div>
                                                             </div>
@@ -905,10 +899,7 @@ export default function App() {
                                                 <motion.div
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${groupPercentage}%` }}
-                                                    className={`h-full rounded-full ${groupPercentage > 80 ? 'bg-violet-500' :
-                                                        groupPercentage > 50 ? 'bg-amber-500' :
-                                                            'bg-emerald-500'
-                                                        }`}
+                                                    style={{ height: '100%', borderRadius: '9999px', backgroundColor: groupPercentage > 80 ? '#8b5cf6' : groupPercentage > 50 ? '#f59e0b' : '#10b981' }}
                                                 />
                                             </div>
 
@@ -941,10 +932,7 @@ export default function App() {
                                                                     <motion.div
                                                                         initial={{ width: 0 }}
                                                                         animate={{ width: `${roomPercentage}%` }}
-                                                                        className={`h-full rounded-full ${roomPercentage > 80 ? 'bg-violet-500' :
-                                                                            roomPercentage > 50 ? 'bg-amber-500' :
-                                                                                isOccupied ? 'bg-blue-500' : 'bg-emerald-500'
-                                                                            }`}
+                                                                        style={{ height: '100%', borderRadius: '9999px', backgroundColor: roomPercentage > 80 ? '#8b5cf6' : roomPercentage > 50 ? '#f59e0b' : isOccupied ? '#3b82f6' : '#10b981' }}
                                                                     />
                                                                 </div>
                                                             </div>
