@@ -826,7 +826,7 @@ export default function App() {
                                             </div>
 
                                             {/* Room grid */}
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                            <div className="flex flex-col gap-3">
                                                 {aulasARooms.map(room => {
                                                     const modulesUsed = filteredSchedules.filter(s =>
                                                         s.sala && s.sala.toUpperCase().includes(room.name.toUpperCase())
