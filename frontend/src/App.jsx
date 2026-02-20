@@ -687,67 +687,72 @@ export default function App() {
                         </div>
 
                         {roomsSubTab === 'listado' ? (
-                            <div className="glass p-6">
-                                <h3 className="text-lg font-bold mb-4">Listado de Salas</h3>
-                                <table className="w-full text-left">
-                                    <thead>
-                                        <tr className="text-slate-500 text-sm border-b border-slate-800">
-                                            <th className="pb-4 font-medium align-top">
-                                                <div className="flex flex-col gap-2">
-                                                    <span>CODSALA</span>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Filtrar..."
-                                                        className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
-                                                        value={roomColumnFilters.code}
-                                                        onChange={(e) => setRoomColumnFilters(prev => ({ ...prev, code: e.target.value }))}
-                                                    />
-                                                </div>
-                                            </th>
-                                            <th className="pb-4 font-medium align-top">
-                                                <div className="flex flex-col gap-2">
-                                                    <span>NOMBRE</span>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Filtrar..."
-                                                        className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
-                                                        value={roomColumnFilters.name}
-                                                        onChange={(e) => setRoomColumnFilters(prev => ({ ...prev, name: e.target.value }))}
-                                                    />
-                                                </div>
-                                            </th>
-                                            <th className="pb-4 font-medium align-top">
-                                                <div className="flex flex-col gap-2">
-                                                    <span>CAPACIDAD</span>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Filtrar..."
-                                                        className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full focus:outline-none focus:border-blue-500"
-                                                        value={roomColumnFilters.capacity}
-                                                        onChange={(e) => setRoomColumnFilters(prev => ({ ...prev, capacity: e.target.value }))}
-                                                    />
-                                                </div>
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="text-sm">
-                                        {rooms.length === 0 ? (
-                                            <tr className="border-b border-slate-800/50">
-                                                <td className="py-6 text-center text-slate-500" colSpan="3">
-                                                    No hay salas registradas.
-                                                </td>
-                                            </tr>
-                                        ) : (
-                                            filteredRooms.map((r) => (
-                                                <tr key={r.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
-                                                    <td className="py-3 font-mono text-blue-400">{r.code}</td>
-                                                    <td className="py-3 font-semibold">{r.name}</td>
-                                                    <td className="py-3 text-slate-400">{r.capacity}</td>
-                                                </tr>
-                                            ))
-                                        )}
-                                    </tbody>
-                                </table>
+                            <div className="flex flex-col gap-4">
+                                {[
+                                    { prefix: 'CCEA', label: 'Aulas A' },
+                                    { prefix: 'CCEB', label: 'Aulas B' },
+                                    { prefix: 'CCEC', label: 'Aulas C' },
+                                    { prefix: 'CCED', label: 'Aulas D' },
+                                    { prefix: 'CCEE', label: 'Aulas E' },
+                                    { prefix: 'CCEF', label: 'Aulas F' },
+                                ].map(group => {
+                                    const groupRooms = filteredRooms.filter(r => r.code.startsWith(group.prefix));
+                                    if (groupRooms.length === 0) return null;
+                                    return (
+                                        <div key={group.prefix} className="glass p-6">
+                                            <h3 className="text-lg font-bold mb-1">{group.label}</h3>
+                                            <p className="text-slate-400 text-sm mb-4">{groupRooms.length} salas</p>
+                                            <table className="w-full text-left">
+                                                <thead>
+                                                    <tr className="text-slate-500 text-sm border-b border-slate-800">
+                                                        <th className="pb-3 font-medium">CODSALA</th>
+                                                        <th className="pb-3 font-medium">NOMBRE</th>
+                                                        <th className="pb-3 font-medium">CAPACIDAD</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="text-sm">
+                                                    {groupRooms.map((r) => (
+                                                        <tr key={r.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
+                                                            <td className="py-3 font-mono text-blue-400">{r.code}</td>
+                                                            <td className="py-3 font-semibold">{r.name}</td>
+                                                            <td className="py-3 text-slate-400">{r.capacity}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    );
+                                })}
+                                {/* Salas sin grupo */}
+                                {(() => {
+                                    const knownPrefixes = ['CCEA', 'CCEB', 'CCEC', 'CCED', 'CCEE', 'CCEF'];
+                                    const ungrouped = filteredRooms.filter(r => !knownPrefixes.some(p => r.code.startsWith(p)));
+                                    if (ungrouped.length === 0) return null;
+                                    return (
+                                        <div className="glass p-6">
+                                            <h3 className="text-lg font-bold mb-1">Otras Salas</h3>
+                                            <p className="text-slate-400 text-sm mb-4">{ungrouped.length} salas</p>
+                                            <table className="w-full text-left">
+                                                <thead>
+                                                    <tr className="text-slate-500 text-sm border-b border-slate-800">
+                                                        <th className="pb-3 font-medium">CODSALA</th>
+                                                        <th className="pb-3 font-medium">NOMBRE</th>
+                                                        <th className="pb-3 font-medium">CAPACIDAD</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="text-sm">
+                                                    {ungrouped.map((r) => (
+                                                        <tr key={r.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
+                                                            <td className="py-3 font-mono text-blue-400">{r.code}</td>
+                                                            <td className="py-3 font-semibold">{r.name}</td>
+                                                            <td className="py-3 text-slate-400">{r.capacity}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         ) : (
                             <div className="flex flex-col gap-6">
