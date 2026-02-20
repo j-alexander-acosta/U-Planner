@@ -341,6 +341,7 @@ class GoogleSheetsService:
             new_sched = models.AcademicSchedule(
                 carrera=carrera,
                 nivel=str(row.get('NIVEL', '')).strip(),
+                dia=str(row.get('DIA', '')).strip(),
                 codramo=str(row.get('CODRAMO', '')).strip(),
                 modulo_horario=str(row.get('MODULO Y HORARIO', '')).strip(),
                 seccion=str(row.get('SECCION', '')).strip(),
