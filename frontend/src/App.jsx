@@ -1289,25 +1289,42 @@ export default function App() {
                                     <h3 className="text-xl font-bold">Disponibilidad Salas</h3>
                                     <div className="flex flex-col gap-4">
                                         {[
-                                            { name: 'Aulas Generales', usage: 72 },
-                                            { name: 'Salas de Reunión', usage: 40 },
-                                            { name: 'Auditorios', usage: 55 },
-                                            { name: 'Canchas', usage: 20 }
-                                        ].map((sala) => (
-                                            <div key={sala.name} className="flex flex-col gap-2">
-                                                <div className="flex justify-between text-sm">
-                                                    <span className="text-slate-400">{sala.name}</span>
-                                                    <span className="font-bold">{sala.usage}%</span>
+                                            { prefix: 'CCEA', label: 'Aulas A' },
+                                            { prefix: 'CCEB', label: 'Aulas B' },
+                                            { prefix: 'CCEC', label: 'Aulas C' },
+                                            { prefix: 'CCED', label: 'Aulas D' },
+                                            { prefix: 'CCEE', label: 'Aulas E' },
+                                            { prefix: 'CCEF', label: 'Aulas F' },
+                                        ].map((group) => {
+                                            const groupRooms = rooms.filter(r => r.code.startsWith(group.prefix));
+                                            const filteredDays = selectedDay === 'Todos' ? days : days.filter(d => d.code === selectedDay);
+                                            const filteredSchedules = academicSchedules.filter(s =>
+                                                filteredDays.some(d => d.code === s.dia)
+                                            );
+                                            const totalRooms = groupRooms.length;
+                                            const occupiedRooms = groupRooms.filter(room =>
+                                                filteredSchedules.some(s =>
+                                                    s.sala && s.sala.toUpperCase().includes(room.name.toUpperCase())
+                                                )
+                                            ).length;
+                                            const usage = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+
+                                            return (
+                                                <div key={group.prefix} className="flex flex-col gap-2">
+                                                    <div className="flex justify-between text-sm">
+                                                        <span className="text-slate-400">{group.label} ({occupiedRooms}/{totalRooms})</span>
+                                                        <span className="font-bold">{usage}%</span>
+                                                    </div>
+                                                    <div style={{ height: '8px' }} className="w-full bg-slate-800 rounded-full overflow-hidden">
+                                                        <motion.div
+                                                            initial={{ width: 0 }}
+                                                            animate={{ width: `${usage}%` }}
+                                                            style={{ height: '100%', borderRadius: '9999px', backgroundColor: usage > 80 ? '#8b5cf6' : usage > 50 ? '#f59e0b' : '#10b981' }}
+                                                        />
+                                                    </div>
                                                 </div>
-                                                <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-                                                    <motion.div
-                                                        initial={{ width: 0 }}
-                                                        animate={{ width: `${sala.usage}%` }}
-                                                        className={`h-full ${sala.usage > 80 ? 'bg-red-500' : 'bg-emerald-500'}`}
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
