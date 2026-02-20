@@ -843,7 +843,7 @@ export default function App() {
                                                                 }`} />
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex justify-between items-center">
-                                                                    <span className="text-sm font-semibold">{room.name}</span>
+                                                                    <span className="text-sm font-semibold"><span className="font-mono text-blue-400">{room.code}</span> — {room.name}</span>
                                                                     <span className={`text-xs font-mono font-bold ${roomPercentage > 80 ? 'text-red-400' :
                                                                         roomPercentage > 50 ? 'text-amber-400' :
                                                                             isOccupied ? 'text-blue-400' : 'text-emerald-400'
@@ -851,7 +851,7 @@ export default function App() {
                                                                         {isOccupied ? `${roomPercentage}% (${modulesUsed} mod)` : 'Libre'}
                                                                     </span>
                                                                 </div>
-                                                                <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden mt-1">
+                                                                <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden mt-1.5">
                                                                     <motion.div
                                                                         initial={{ width: 0 }}
                                                                         animate={{ width: `${roomPercentage}%` }}
