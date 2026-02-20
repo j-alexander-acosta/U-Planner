@@ -71,6 +71,7 @@ export default function App() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [roomsSubTab, setRoomsSubTab] = useState('listado');
     const [roomsDayFilter, setRoomsDayFilter] = useState('Todos');
+    const [roomsModuleFilter, setRoomsModuleFilter] = useState('Todos');
     const [userRole, setUserRole] = useState('registro'); // 'registro' | 'director'
     const [selectedFile, setSelectedFile] = useState(null);
     const [teachers, setTeachers] = useState([]);
@@ -193,6 +194,7 @@ export default function App() {
             fetchRooms();
             fetchAcademicSchedules();
             fetchDays();
+            fetchTimeModules();
         }
         if (activeTab === 'subjects') {
             fetchSubjects();
@@ -748,7 +750,7 @@ export default function App() {
                             </div>
                         ) : (
                             <div className="flex flex-col gap-6">
-                                {/* Day Selector */}
+                                {/* Day & Module Selectors */}
                                 <div className="flex items-center gap-4">
                                     <div className="relative">
                                         <select
@@ -763,6 +765,19 @@ export default function App() {
                                         </select>
                                         <ChevronRight size={16} className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-white pointer-events-none" />
                                     </div>
+                                    <div className="relative">
+                                        <select
+                                            value={roomsModuleFilter}
+                                            onChange={(e) => setRoomsModuleFilter(e.target.value)}
+                                            className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-slate-900/20 appearance-none cursor-pointer pr-10 outline-none"
+                                        >
+                                            <option value="Todos">🕒 Todos los módulos</option>
+                                            {timeModules.map((mod) => (
+                                                <option key={mod.id} value={mod.mod_hor}>🕒 Módulo {mod.modulo} ({mod.rango})</option>
+                                            ))}
+                                        </select>
+                                        <ChevronRight size={16} className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-white pointer-events-none" />
+                                    </div>
                                 </div>
 
                                 {/* Aulas A Group */}
@@ -771,12 +786,16 @@ export default function App() {
                                     const aulasARooms = rooms.filter(r => aulasACodes.includes(r.code));
                                     const totalModules = 13;
                                     const filteredDays = roomsDayFilter === 'Todos' ? days : days.filter(d => d.code === roomsDayFilter);
+                                    const filteredSchedules = academicSchedules.filter(s =>
+                                        filteredDays.some(d => d.code === s.dia) &&
+                                        (roomsModuleFilter === 'Todos' || s.modulo_horario === roomsModuleFilter)
+                                    );
+                                    const activeModuleCount = roomsModuleFilter === 'Todos' ? totalModules : 1;
 
                                     // Calculate group occupancy
                                     const totalRooms = aulasARooms.length;
                                     const occupiedRooms = aulasARooms.filter(room =>
-                                        academicSchedules.some(s =>
-                                            filteredDays.some(d => d.code === s.dia) &&
+                                        filteredSchedules.some(s =>
                                             s.sala && s.sala.toUpperCase().includes(room.name.toUpperCase())
                                         )
                                     ).length;
@@ -800,8 +819,8 @@ export default function App() {
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${groupPercentage}%` }}
                                                     className={`h-full rounded-full ${groupPercentage > 80 ? 'bg-red-500' :
-                                                            groupPercentage > 50 ? 'bg-amber-500' :
-                                                                'bg-emerald-500'
+                                                        groupPercentage > 50 ? 'bg-amber-500' :
+                                                            'bg-emerald-500'
                                                         }`}
                                                 />
                                             </div>
@@ -809,26 +828,25 @@ export default function App() {
                                             {/* Room grid */}
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                                 {aulasARooms.map(room => {
-                                                    const modulesUsed = academicSchedules.filter(s =>
-                                                        filteredDays.some(d => d.code === s.dia) &&
+                                                    const modulesUsed = filteredSchedules.filter(s =>
                                                         s.sala && s.sala.toUpperCase().includes(room.name.toUpperCase())
                                                     ).length;
-                                                    const roomPercentage = Math.round((modulesUsed / (totalModules * filteredDays.length)) * 100);
+                                                    const roomPercentage = Math.round((modulesUsed / (activeModuleCount * filteredDays.length)) * 100);
                                                     const isOccupied = modulesUsed > 0;
 
                                                     return (
                                                         <div key={room.id} className={`flex items-center gap-3 p-3 rounded-xl border ${isOccupied ? 'bg-slate-800/40 border-slate-700/50' : 'bg-emerald-500/5 border-emerald-500/20'
                                                             }`}>
                                                             <div className={`w-3 h-3 rounded-full flex-shrink-0 ${roomPercentage > 80 ? 'bg-red-500' :
-                                                                    roomPercentage > 50 ? 'bg-amber-500' :
-                                                                        isOccupied ? 'bg-blue-500' : 'bg-emerald-500'
+                                                                roomPercentage > 50 ? 'bg-amber-500' :
+                                                                    isOccupied ? 'bg-blue-500' : 'bg-emerald-500'
                                                                 }`} />
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex justify-between items-center">
                                                                     <span className="text-sm font-semibold">{room.name}</span>
                                                                     <span className={`text-xs font-mono font-bold ${roomPercentage > 80 ? 'text-red-400' :
-                                                                            roomPercentage > 50 ? 'text-amber-400' :
-                                                                                isOccupied ? 'text-blue-400' : 'text-emerald-400'
+                                                                        roomPercentage > 50 ? 'text-amber-400' :
+                                                                            isOccupied ? 'text-blue-400' : 'text-emerald-400'
                                                                         }`}>
                                                                         {isOccupied ? `${roomPercentage}% (${modulesUsed} mod)` : 'Libre'}
                                                                     </span>
@@ -838,8 +856,8 @@ export default function App() {
                                                                         initial={{ width: 0 }}
                                                                         animate={{ width: `${roomPercentage}%` }}
                                                                         className={`h-full rounded-full ${roomPercentage > 80 ? 'bg-red-500' :
-                                                                                roomPercentage > 50 ? 'bg-amber-500' :
-                                                                                    isOccupied ? 'bg-blue-500' : 'bg-emerald-500'
+                                                                            roomPercentage > 50 ? 'bg-amber-500' :
+                                                                                isOccupied ? 'bg-blue-500' : 'bg-emerald-500'
                                                                             }`}
                                                                     />
                                                                 </div>
