@@ -762,6 +762,10 @@ export default function App() {
                                             <option value="Todos">🏢 Todos los grupos</option>
                                             <option value="CCEA">🏢 Aulas A</option>
                                             <option value="CCEB">🏢 Aulas B</option>
+                                            <option value="CCEC">🏢 Aulas C</option>
+                                            <option value="CCED">🏢 Aulas D</option>
+                                            <option value="CCEE">🏢 Aulas E</option>
+                                            <option value="CCEF">🏢 Aulas F</option>
                                         </select>
                                         <ChevronRight size={16} className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-white pointer-events-none" />
                                     </div>
@@ -797,6 +801,10 @@ export default function App() {
                                 {[
                                     { prefix: 'CCEA', label: 'Aulas A' },
                                     { prefix: 'CCEB', label: 'Aulas B' },
+                                    { prefix: 'CCEC', label: 'Aulas C' },
+                                    { prefix: 'CCED', label: 'Aulas D' },
+                                    { prefix: 'CCEE', label: 'Aulas E' },
+                                    { prefix: 'CCEF', label: 'Aulas F' },
                                 ].filter(g => roomsGroupFilter === 'Todos' || roomsGroupFilter === g.prefix).map(group => {
                                     const groupRooms = rooms.filter(r => r.code.startsWith(group.prefix));
                                     const totalModules = 13;
