@@ -409,10 +409,12 @@ export default function App() {
             {/* Main Content */}
             <main className="flex-1 flex flex-col gap-6">
                 <header className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-3xl font-bold">Bienvenido, Alexander</h2>
-                        <p className="text-slate-400 mt-1">Gestión académica Universidad Adventista de Chile</p>
-                    </div>
+                    {activeTab === 'dashboard' && (
+                        <div>
+                            <h2 className="text-3xl font-bold">Bienvenido, Alexander</h2>
+                            <p className="text-slate-400 mt-1">Gestión académica Universidad Adventista de Chile</p>
+                        </div>
+                    )}
 
                     <div className="flex items-center gap-4">
                         {activeTab === 'dashboard' && (
