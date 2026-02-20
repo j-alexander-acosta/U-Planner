@@ -850,7 +850,7 @@ export default function App() {
                                                                         {isOccupied ? `${roomPercentage}% (${modulesUsed} mod)` : 'Libre'}
                                                                     </span>
                                                                 </div>
-                                                                <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden mt-1.5">
+                                                                <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden mt-1.5">
                                                                     <motion.div
                                                                         initial={{ width: 0 }}
                                                                         animate={{ width: `${roomPercentage}%` }}
@@ -937,7 +937,7 @@ export default function App() {
                                                                         {isOccupied ? `${roomPercentage}% (${modulesUsed} mod)` : 'Libre'}
                                                                     </span>
                                                                 </div>
-                                                                <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden mt-1.5">
+                                                                <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden mt-1.5">
                                                                     <motion.div
                                                                         initial={{ width: 0 }}
                                                                         animate={{ width: `${roomPercentage}%` }}
