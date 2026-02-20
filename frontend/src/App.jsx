@@ -1126,32 +1126,6 @@ export default function App() {
 
                             <div className="flex flex-col gap-6">
                                 <div className="glass p-6 flex flex-col gap-6">
-                                    <h3 className="text-xl font-bold">Disponibilidad Laboratorios</h3>
-                                    <div className="flex flex-col gap-4">
-                                        {[
-                                            { name: 'Computación', usage: 85 },
-                                            { name: 'Ciencias Básicas', usage: 45 },
-                                            { name: 'Salud / Simulación', usage: 60 },
-                                            { name: 'Talleres', usage: 30 }
-                                        ].map((lab) => (
-                                            <div key={lab.name} className="flex flex-col gap-2">
-                                                <div className="flex justify-between text-sm">
-                                                    <span className="text-slate-400">{lab.name}</span>
-                                                    <span className="font-bold">{lab.usage}%</span>
-                                                </div>
-                                                <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-                                                    <motion.div
-                                                        initial={{ width: 0 }}
-                                                        animate={{ width: `${lab.usage}%` }}
-                                                        className={`h-full ${lab.usage > 80 ? 'bg-red-500' : 'bg-blue-500'}`}
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="glass p-6 flex flex-col gap-6">
                                     <h3 className="text-xl font-bold">Disponibilidad Salas</h3>
                                     <div className="flex flex-col gap-4">
                                         {[
@@ -1170,6 +1144,32 @@ export default function App() {
                                                         initial={{ width: 0 }}
                                                         animate={{ width: `${sala.usage}%` }}
                                                         className={`h-full ${sala.usage > 80 ? 'bg-red-500' : 'bg-emerald-500'}`}
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="glass p-6 flex flex-col gap-6">
+                                    <h3 className="text-xl font-bold">Disponibilidad Laboratorios</h3>
+                                    <div className="flex flex-col gap-4">
+                                        {[
+                                            { name: 'Computación', usage: 85 },
+                                            { name: 'Ciencias Básicas', usage: 45 },
+                                            { name: 'Salud / Simulación', usage: 60 },
+                                            { name: 'Talleres', usage: 30 }
+                                        ].map((lab) => (
+                                            <div key={lab.name} className="flex flex-col gap-2">
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-slate-400">{lab.name}</span>
+                                                    <span className="font-bold">{lab.usage}%</span>
+                                                </div>
+                                                <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                                                    <motion.div
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${lab.usage}%` }}
+                                                        className={`h-full ${lab.usage > 80 ? 'bg-red-500' : 'bg-blue-500'}`}
                                                     />
                                                 </div>
                                             </div>
