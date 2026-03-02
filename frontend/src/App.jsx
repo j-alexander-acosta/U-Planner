@@ -427,21 +427,6 @@ export default function App() {
                     )}
 
                     <div className="flex items-center gap-4">
-                        {activeTab === 'dashboard' && (
-                            <div className="relative">
-                                <select
-                                    value={selectedDay}
-                                    onChange={(e) => setSelectedDay(e.target.value)}
-                                    className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-blue-900/20 appearance-none cursor-pointer pr-10 outline-none"
-                                >
-                                    <option value="Todos">📅 Todos los días</option>
-                                    {days.map((day) => (
-                                        <option key={day.id} value={day.code}>📅 {day.name}</option>
-                                    ))}
-                                </select>
-                                <ChevronRight size={16} className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-white pointer-events-none" />
-                            </div>
-                        )}
                     </div>
                 </header>
 
@@ -1360,21 +1345,35 @@ export default function App() {
                                                     s.sala && s.sala.toUpperCase().includes(room.name.toUpperCase())
                                                 )
                                             ).length;
+                                            const availableRooms = groupRooms.filter(room =>
+                                                !filteredSchedules.some(s =>
+                                                    s.sala && s.sala.toUpperCase().includes(room.name.toUpperCase())
+                                                )
+                                            );
                                             const usage = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
 
                                             return (
-                                                <div key={group.prefix} className="flex flex-col gap-2">
+                                                <div key={group.prefix} className="flex flex-col gap-2 mb-4">
                                                     <div className="flex justify-between text-sm">
                                                         <span className="text-slate-400">{group.label} ({occupiedRooms}/{totalRooms})</span>
                                                         <span className="font-bold">{usage}%</span>
                                                     </div>
-                                                    <div style={{ height: '8px' }} className="w-full bg-slate-800 rounded-full overflow-hidden">
+                                                    <div style={{ height: '8px' }} className="w-full bg-slate-800 rounded-full overflow-hidden mb-1">
                                                         <motion.div
                                                             initial={{ width: 0 }}
                                                             animate={{ width: `${usage}%` }}
                                                             style={{ height: '100%', borderRadius: '9999px', backgroundColor: usage > 80 ? '#8b5cf6' : usage > 50 ? '#f59e0b' : '#10b981' }}
                                                         />
                                                     </div>
+                                                    {availableRooms.length > 0 && (
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {availableRooms.map(r => (
+                                                                <span key={r.id} className="text-xs font-medium px-2 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                                                                    {r.name}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             );
                                         })}
