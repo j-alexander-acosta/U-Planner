@@ -5,7 +5,7 @@ import App from './App.jsx'
 import Login from './Login.jsx'
 import './index.css'
 
-const clientId = "TU_CLIENT_ID_DE_GOOGLE_AQUI"; // REEMPLAZAR CON EL CLIENT ID REAL
+const clientId = "855223609904-9s7j1dldbknc86cqtr22hd300d0ed89v.apps.googleusercontent.com";
 
 function MainApp() {
     const [user, setUser] = useState(null);
