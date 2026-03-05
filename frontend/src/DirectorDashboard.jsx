@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Users,
     BookOpen,
@@ -26,6 +26,15 @@ const SummaryCard = ({ label, value, icon: Icon, color }) => (
 );
 
 export default function DirectorDashboard() {
+    const carreras = [
+        'Ingeniería Civil Informática',
+        'Ingeniería Comercial',
+        'Enfermería',
+        'Psicología',
+        'Pedagogía en Inglés',
+        'Nutrición y Dietética'
+    ];
+    const [selectedCarrera, setSelectedCarrera] = useState(carreras[0]);
     const departmentalLoad = [
         { day: 'Lun', hours: 12 },
         { day: 'Mar', hours: 15 },
@@ -39,7 +48,20 @@ export default function DirectorDashboard() {
             <div className="flex justify-between items-end">
                 <div>
                     <h2 className="text-3xl font-bold">Panel de Director</h2>
-                    <p className="text-slate-400 mt-1">Ingeniería Civil Informática • Primer Semestre 2026</p>
+                    <div className="flex items-center gap-3 mt-2">
+                        <select
+                            value={selectedCarrera}
+                            onChange={(e) => setSelectedCarrera(e.target.value)}
+                            className="bg-slate-800 border border-slate-700 text-sm p-2 rounded-lg text-slate-200 outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer"
+                        >
+                            {carreras.map(carrera => (
+                                <option key={carrera} value={carrera}>{carrera}</option>
+                            ))}
+                        </select>
+                        <p className="text-slate-400 text-sm">
+                            • Primer Semestre 2026
+                        </p>
+                    </div>
                 </div>
                 <div className="flex gap-3">
                     <span className="bg-blue-600/10 text-blue-400 px-3 py-1 rounded-full text-xs font-bold border border-blue-600/20">
