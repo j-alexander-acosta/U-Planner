@@ -50,7 +50,7 @@ export default function Login({ onLoginSuccess }) {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center relative overflow-hidden font-sans">
+        <div className="min-h-screen w-full bg-slate-950 text-slate-100 flex items-center justify-center relative overflow-hidden font-sans">
             {/* Elementos decorativos de fondo */}
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
             <div className="absolute bottom-[-100px] left-[-100px] w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none"></div>
@@ -60,7 +60,7 @@ export default function Login({ onLoginSuccess }) {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                className="glass p-10 rounded-2xl border border-slate-700/50 w-full max-w-md relative z-10 flex flex-col items-center shadow-2xl shadow-blue-900/20"
+                className="glass p-10 rounded-2xl border border-slate-700/50 w-full max-w-md mx-auto relative z-10 flex flex-col items-center shadow-2xl shadow-blue-900/20"
             >
                 <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-4 rounded-full mb-6 shadow-lg shadow-blue-500/30">
                     <Calendar size={40} className="text-white" />
