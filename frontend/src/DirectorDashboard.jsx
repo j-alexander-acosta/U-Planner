@@ -42,12 +42,39 @@ export default function DirectorDashboard({ schedules = [] }) {
             setSelectedCarrera(carreras[0]);
         }
     }, [uniqueCareers.join(',')]);
+
+    // Filtrar los horarios en base a la carrera seleccionada
+    const filteredSchedules = schedules.filter(s => s.carrera === selectedCarrera);
+
+    // Calcular métricas dinámicas
+    const activeSubjects = new Set(filteredSchedules.map(s => s.asignatura).filter(Boolean)).size;
+    const activeTeachers = new Set(filteredSchedules.map(s => s.docente).filter(d => d && d.toUpperCase() !== 'POR DEFINIR' && d.trim() !== '')).size;
+    // Asumiremos que cada módulo corresponde a un bloque de horas. Para simplificar, total de entradas = total horas/bloques
+    // Frecuentemente en universidades de Chile 1 módulo = 1.5 horas cronológicas o 2 pedagógicas. Contaremos los módulos totales.
+    const totalHours = filteredSchedules.filter(s => s.modulo_horario).length * 1.5;
+
+    // Determinar Conflictos (simplificado: mismo docente, mismo día y mismo bloque en la carrera)
+    // Para simplificar, si hay 2 entradas con el mismo docente, día y módulo, es conflicto.
+    const conflicts = new Set();
+    const scheduleKeys = new Set();
+    filteredSchedules.forEach(s => {
+        if (s.docente && s.docente.toUpperCase() !== 'POR DEFINIR' && s.dia && s.modulo_horario) {
+            const key = `${s.docente}-${s.dia}-${s.modulo_horario}`;
+            if (scheduleKeys.has(key)) {
+                conflicts.add(key);
+            } else {
+                scheduleKeys.add(key);
+            }
+        }
+    });
+    const pendingConflicts = conflicts.size;
+
     const departmentalLoad = [
-        { day: 'Lun', hours: 12 },
-        { day: 'Mar', hours: 15 },
-        { day: 'Mie', hours: 10 },
-        { day: 'Jue', hours: 14 },
-        { day: 'Vie', hours: 8 },
+        { day: 'Lun', hours: filteredSchedules.filter(s => s.dia && s.dia.includes('Lunes')).length * 1.5 || 0 },
+        { day: 'Mar', hours: filteredSchedules.filter(s => s.dia && s.dia.includes('Martes')).length * 1.5 || 0 },
+        { day: 'Mie', hours: filteredSchedules.filter(s => s.dia && s.dia.includes('Miércoles')).length * 1.5 || 0 },
+        { day: 'Jue', hours: filteredSchedules.filter(s => s.dia && s.dia.includes('Jueves')).length * 1.5 || 0 },
+        { day: 'Vie', hours: filteredSchedules.filter(s => s.dia && s.dia.includes('Viernes')).length * 1.5 || 0 },
     ];
 
     return (
@@ -59,14 +86,14 @@ export default function DirectorDashboard({ schedules = [] }) {
                         <select
                             value={selectedCarrera}
                             onChange={(e) => setSelectedCarrera(e.target.value)}
-                            className="bg-slate-800 border border-slate-700 text-sm p-2 rounded-lg text-slate-200 outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer"
+                            className="bg-slate-800 border border-slate-700 text-sm p-2 rounded-lg text-slate-200 outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer w-[300px]"
                         >
                             {carreras.map(carrera => (
                                 <option key={carrera} value={carrera}>{carrera}</option>
                             ))}
                         </select>
                         <p className="text-slate-400 text-sm">
-                            • Primer Semestre 2026
+                            • Semestre Actual
                         </p>
                     </div>
                 </div>
@@ -79,17 +106,17 @@ export default function DirectorDashboard({ schedules = [] }) {
 
             {/* Career Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <SummaryCard label="Asignaturas Activas" value="86" icon={BookOpen} color="blue" />
-                <SummaryCard label="Docentes Desplegados" value="42" icon={Users} color="emerald" />
-                <SummaryCard label="Horas Semanales" value="156h" icon={Clock} color="purple" />
-                <SummaryCard label="Conflictos Pendientes" value="3" icon={AlertTriangle} color="red" />
+                <SummaryCard label="Asignaturas Activas" value={activeSubjects.toString()} icon={BookOpen} color="blue" />
+                <SummaryCard label="Docentes Desplegados" value={activeTeachers.toString()} icon={Users} color="emerald" />
+                <SummaryCard label="Horas Semanales" value={`${totalHours}h`} icon={Clock} color="purple" />
+                <SummaryCard label="Conflictos Pendientes" value={pendingConflicts.toString()} icon={AlertTriangle} color={pendingConflicts > 0 ? "red" : "emerald"} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Schedule Review Table */}
                 <div className="lg:col-span-2 glass p-6">
                     <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-xl font-bold">Revisión de Horarios Propuestos</h3>
+                        <h3 className="text-xl font-bold">Resumen de Asignaciones ({filteredSchedules.length})</h3>
                         <div className="flex gap-2">
                             <button className="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg font-medium transition-colors">
                                 Exportar PDF
@@ -97,9 +124,9 @@ export default function DirectorDashboard({ schedules = [] }) {
                         </div>
                     </div>
 
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto max-h-[300px]">
                         <table className="w-full text-left">
-                            <thead>
+                            <thead className="sticky top-0 bg-slate-900">
                                 <tr className="text-slate-500 text-sm border-b border-slate-800">
                                     <th className="pb-4 font-medium">Asignatura</th>
                                     <th className="pb-4 font-medium">Docente</th>
@@ -108,24 +135,22 @@ export default function DirectorDashboard({ schedules = [] }) {
                                 </tr>
                             </thead>
                             <tbody className="text-sm">
-                                {[
-                                    { sub: 'Sistemas Operativos', prof: 'Dr. Alan Turing', time: 'Lun 08:00', status: 'Aprobado', color: 'emerald' },
-                                    { sub: 'Base de Datos II', prof: 'Msc. Grace Hopper', time: 'Mar 10:00', status: 'Pendiente', color: 'blue' },
-                                    { sub: 'IA Avanzada', prof: 'Dr. John McCarthy', time: 'Mie 14:00', status: 'Corregir', color: 'red' },
-                                    { sub: 'Redes de Datos', prof: 'Ing. Vint Cerf', time: 'Jue 11:30', status: 'Aprobado', color: 'emerald' },
-                                    { sub: 'Ética Profesional', prof: 'Lic. Ada Lovelace', time: 'Vie 09:45', status: 'Aprobado', color: 'emerald' },
-                                ].map((row, idx) => (
-                                    <tr key={idx} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
-                                        <td className="py-4 font-semibold">{row.sub}</td>
-                                        <td className="py-4 text-slate-400">{row.prof}</td>
-                                        <td className="py-4 text-slate-400">{row.time}</td>
-                                        <td className="py-4">
-                                            <span className={`bg-${row.color}-500/10 text-${row.color}-400 px-2.5 py-1 rounded-lg text-xs font-bold border border-${row.color}-500/20`}>
-                                                {row.status}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
+                                {filteredSchedules.slice(0, 50).map((row, idx) => {
+                                    const isConflict = row.docente && row.docente.toUpperCase() !== 'POR DEFINIR' &&
+                                        conflicts.has(`${row.docente}-${row.dia}-${row.modulo_horario}`);
+                                    return (
+                                        <tr key={idx} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
+                                            <td className="py-4 font-semibold">{row.asignatura || 'Sin Asignatura'}</td>
+                                            <td className="py-4 text-slate-400">{row.docente || 'Por Definir'}</td>
+                                            <td className="py-4 text-slate-400">{row.dia} {row.modulo_horario}</td>
+                                            <td className="py-4">
+                                                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${isConflict ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
+                                                    {isConflict ? 'Conflicto' : 'Aprobado'}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
@@ -140,10 +165,10 @@ export default function DirectorDashboard({ schedules = [] }) {
                                 <div className="text-xs text-slate-500 font-medium">{data.hours}h</div>
                                 <motion.div
                                     initial={{ height: 0 }}
-                                    animate={{ height: `${data.hours * 8}px` }}
+                                    animate={{ height: `${Math.min(data.hours * 2, 100)}px` }}
                                     className="w-full bg-gradient-to-t from-blue-600/40 to-blue-400 rounded-t-lg relative group"
                                 >
-                                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                                         {data.hours} horas
                                     </div>
                                 </motion.div>
@@ -152,8 +177,7 @@ export default function DirectorDashboard({ schedules = [] }) {
                         ))}
                     </div>
                     <div className="pt-4 border-t border-slate-800 flex justify-between items-center text-xs text-slate-500">
-                        <span>Máx: 20h diarios</span>
-                        <span className="text-emerald-400 font-bold">Optimizado</span>
+                        <span>Horas cronológicas estimadas</span>
                     </div>
                 </div>
             </div>
