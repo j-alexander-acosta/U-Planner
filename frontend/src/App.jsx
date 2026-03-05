@@ -51,12 +51,17 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
     </motion.div>
 );
 
-const StatCard = ({ label, value, trend, icon: Icon }) => (
+const StatCard = ({ label, value, trend, icon: Icon, trendColor, onShowAll }) => (
     <div className="glass p-6 flex items-center justify-between">
         <div>
             <p className="text-slate-400 text-sm font-medium mb-1">{label}</p>
             <h3 className="text-2xl font-bold">{value}</h3>
-            <span className="text-emerald-400 text-xs font-semibold">{trend}</span>
+            <span className={`${trendColor || 'text-emerald-400'} text-xs font-semibold`}>{trend}</span>
+            {onShowAll && (
+                <button onClick={onShowAll} className="mt-2 text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center">
+                    Ver todo <ChevronRight size={16} className="ml-1" />
+                </button>
+            )}
         </div>
         <div className="bg-slate-800 p-3 rounded-xl">
             <Icon className="text-blue-400" size={24} />
@@ -69,6 +74,9 @@ export default function App() {
     const [notifications, setNotifications] = useState([]);
     const [selectedDay, setSelectedDay] = useState('Todos');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isSuggestionsModalOpen, setIsSuggestionsModalOpen] = useState(false);
+    const [isConflictsModalOpen, setIsConflictsModalOpen] = useState(false);
+    const [conflictDetails, setConflictDetails] = useState([]);
     const [roomsSubTab, setRoomsSubTab] = useState('listado');
     const [roomsDayFilter, setRoomsDayFilter] = useState('Todos');
     const [roomsModuleFilter, setRoomsModuleFilter] = useState('Todos');
@@ -191,6 +199,14 @@ export default function App() {
 
 
     useEffect(() => {
+        if (activeTab === 'dashboard') {
+            fetchTeachers();
+            fetchRooms();
+            fetchSubjects();
+            fetchAcademicSchedules();
+            fetchDays();
+            fetchTimeModules();
+        }
         if (activeTab === 'teachers') {
             fetchTeachers();
         }
@@ -319,6 +335,160 @@ export default function App() {
             setIsSyncing(false);
         }
     };
+
+    // Calculate Active Teachers dynamically based on Dashboard filters
+    const activeDashDays = dashDayFilter === 'Todos' ? days : days.filter(d => d.code === dashDayFilter);
+    const activeSchedulesForTeachers = academicSchedules.filter(s =>
+        activeDashDays.some(d => d.code === s.dia) &&
+        (dashModuleFilter === 'Todos' || s.modulo_horario === dashModuleFilter)
+    );
+    const targetDashRooms = dashGroupFilter === 'Todos'
+        ? rooms
+        : rooms.filter(r => r.code.startsWith(dashGroupFilter));
+    const fullyFilteredSchedules = activeSchedulesForTeachers.filter(s =>
+        targetDashRooms.some(r => s.sala && s.sala.toUpperCase().includes(r.name.toUpperCase()))
+    );
+    const activeTeachersCount = new Set(fullyFilteredSchedules.map(s => s.docente).filter(Boolean)).size;
+
+    const occupiedDashRoomsCount = targetDashRooms.filter(room =>
+        fullyFilteredSchedules.some(s =>
+            s.sala && s.sala.toUpperCase().includes(room.name.toUpperCase())
+        )
+    ).length;
+    const totalDashRoomsCount = targetDashRooms.length;
+    const dashRoomsPercentage = totalDashRoomsCount > 0 ? Math.round((occupiedDashRoomsCount / totalDashRoomsCount) * 100) : 0;
+
+    const activeSubjectsCount = new Set(fullyFilteredSchedules.map(s => s.codramo || s.asignatura).filter(Boolean)).size;
+
+    let localConflicts = [];
+    const scheduleGroups = {};
+    activeSchedulesForTeachers.forEach(s => {
+        if (!s.dia || !s.modulo_horario) return;
+        const key = `${s.dia}-${s.modulo_horario}`;
+        if (!scheduleGroups[key]) scheduleGroups[key] = [];
+        scheduleGroups[key].push(s);
+    });
+
+    Object.values(scheduleGroups).forEach(group => {
+        if (group.length <= 1) return;
+        const roomsInSlot = new Map();
+        const teachersInSlot = new Map();
+        group.forEach(s => {
+            if (s.sala && typeof s.sala === 'string' && s.sala.trim() !== '') {
+                const roomKey = s.sala.toUpperCase().trim();
+                let isAdhoc = roomKey.includes("A DETERMINAR") || roomKey.includes("POR ASIGNAR");
+                if (!isAdhoc) {
+                    if (roomsInSlot.has(roomKey)) {
+                        localConflicts.push({
+                            type: 'Cruce de Sala',
+                            entity: roomKey,
+                            subject: s.asignatura || s.codramo,
+                            day: s.dia,
+                            module: s.modulo_horario
+                        });
+                        // Add the original conflicting schedule if it's the first time we detect the conflict for this room
+                        const original = roomsInSlot.get(roomKey);
+                        if (original && !original.reported) {
+                            localConflicts.push({
+                                type: 'Cruce de Sala',
+                                entity: roomKey,
+                                subject: original.asignatura || original.codramo,
+                                day: original.dia,
+                                module: original.modulo_horario
+                            });
+                            original.reported = true;
+                        }
+
+                    } else {
+                        roomsInSlot.set(roomKey, s);
+                    }
+                }
+            }
+            if (s.docente && typeof s.docente === 'string' && s.docente.trim() !== '') {
+                const teacherKey = s.docente.toUpperCase().trim();
+                let isNoDocente = teacherKey.includes("POR ASIGNAR") || teacherKey === "SIN DOCENTE" || teacherKey === "NO ASIGNADO";
+                if (!isNoDocente) {
+                    if (teachersInSlot.has(teacherKey)) {
+                        localConflicts.push({
+                            type: 'Cruce de Docente',
+                            entity: teacherKey,
+                            subject: s.asignatura || s.codramo,
+                            day: s.dia,
+                            module: s.modulo_horario
+                        });
+                        const original = teachersInSlot.get(teacherKey);
+                        if (original && !original.reportedTeacher) {
+                            localConflicts.push({
+                                type: 'Cruce de Docente',
+                                entity: teacherKey,
+                                subject: original.asignatura || original.codramo,
+                                day: original.dia,
+                                module: original.modulo_horario
+                            });
+                            original.reportedTeacher = true;
+                        }
+                    } else {
+                        teachersInSlot.set(teacherKey, s);
+                    }
+                }
+            }
+        });
+    });
+
+    // update state only if different to prevent infinite loops (using a simple length check or stringify if needed, but in standard react this should be set in a useEffect. Since this is derived state calculated during render, it's better to just use the local variable for rendering the modal to avoid infinite loops, but we need the modal to access it. So we set it in a useEffect.)
+    const conflictsCount = localConflicts.length;
+
+    useEffect(() => {
+        setConflictDetails(localConflicts);
+    }, [academicSchedules, selectedDay, dashDayFilter, dashModuleFilter, dashGroupFilter]);
+
+    const suggestedAssignments = [];
+    activeSchedulesForTeachers.forEach(s => {
+        const subject = subjects.find(sub =>
+            sub.code === s.codramo || sub.name === s.asignatura
+        );
+        const enrolled = subject ? (parseInt(subject.enrolled_students) || 0) : 0;
+
+        let assignedRoom = targetDashRooms.find(r => s.sala && s.sala.toUpperCase().includes(r.name.toUpperCase()));
+
+        if (assignedRoom && parseInt(assignedRoom.capacity) >= enrolled) {
+            suggestedAssignments.push({
+                asignatura: subject ? subject.name : s.asignatura,
+                docente: s.docente || 'Sin Docente',
+                sala: `${assignedRoom.name} (${enrolled}/${assignedRoom.capacity})`,
+                estado: 'Confirmado'
+            });
+        } else if (assignedRoom && parseInt(assignedRoom.capacity) < enrolled) {
+            let betterRoom = targetDashRooms.find(r => parseInt(r.capacity) >= enrolled);
+            suggestedAssignments.push({
+                asignatura: subject ? subject.name : s.asignatura,
+                docente: s.docente || 'Sin Docente',
+                sala: betterRoom ? `${betterRoom.name} (${enrolled}/${betterRoom.capacity})` : `${assignedRoom.name} (Capacidad: ${assignedRoom.capacity}, Cupo: ${enrolled})`,
+                estado: betterRoom ? 'Sugerido' : 'Sobrecupo'
+            });
+        } else if (!assignedRoom) {
+            let suitableRoom = targetDashRooms.find(r => parseInt(r.capacity) >= enrolled);
+            if (suitableRoom) {
+                suggestedAssignments.push({
+                    asignatura: subject ? subject.name : s.asignatura,
+                    docente: s.docente || 'Sin Docente',
+                    sala: `${suitableRoom.name} (${enrolled}/${suitableRoom.capacity})`,
+                    estado: 'Sugerido'
+                });
+            }
+        }
+    });
+
+    const uniqueSuggestions = [];
+    const seenSugs = new Set();
+    for (let sug of suggestedAssignments) {
+        let key = `${sug.asignatura}-${sug.docente}-${sug.sala}-${sug.estado}`;
+        if (!seenSugs.has(key)) {
+            seenSugs.add(key);
+            uniqueSuggestions.push(sug);
+        }
+    }
+    const topSuggestions = uniqueSuggestions.length > 0 ? uniqueSuggestions.slice(0, 6) : [];
 
     return (
         <div className="flex min-h-screen bg-slate-950 text-slate-100 p-4">
@@ -1234,17 +1404,27 @@ export default function App() {
                         </AnimatePresence>
 
                         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            <StatCard label="Total Docentes" value="124" trend="+4 este mes" icon={Users} />
-                            <StatCard label="Salas Ocupadas" value="18/42" trend="42% capacidad" icon={DoorOpen} />
-                            <StatCard label="Asignaturas" value="312" trend="En progreso" icon={BookOpen} />
-                            <StatCard label="Conflictos" value="0" trend="Optimizado" icon={Calendar} />
+                            <StatCard label="Total Docentes" value={`${activeTeachersCount} / ${teachers.length}`} trend="Activos / Total" icon={Users} />
+                            <StatCard label="Salas Ocupadas" value={`${occupiedDashRoomsCount}/${totalDashRoomsCount}`} trend={`${dashRoomsPercentage}% capacidad`} icon={DoorOpen} />
+                            <StatCard label="Asignaturas" value={`${activeSubjectsCount} / ${subjects.length}`} trend="Programadas / Total" icon={BookOpen} />
+                            <StatCard
+                                label="Conflictos"
+                                value={conflictsCount.toString()}
+                                trend={conflictsCount > 0 ? "Requiere atención" : "Optimizado"}
+                                trendColor={conflictsCount > 0 ? "text-rose-400" : "text-emerald-400"}
+                                icon={Calendar}
+                                onShowAll={conflictsCount > 0 ? () => setIsConflictsModalOpen(true) : null}
+                            />
                         </section>
 
                         <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <div className="lg:col-span-2 glass p-6 overflow-hidden flex flex-col">
                                 <div className="flex items-center justify-between mb-6">
                                     <h3 className="text-xl font-bold">Asignaciones Sugeridas</h3>
-                                    <button className="text-blue-400 text-sm font-semibold flex items-center gap-1 hover:text-blue-300">
+                                    <button
+                                        className="text-blue-400 text-sm font-semibold flex items-center gap-1 hover:text-blue-300 transition-colors"
+                                        onClick={() => setIsSuggestionsModalOpen(true)}
+                                    >
                                         Ver todo <ChevronRight size={16} />
                                     </button>
                                 </div>
@@ -1260,18 +1440,29 @@ export default function App() {
                                             </tr>
                                         </thead>
                                         <tbody className="text-sm">
-                                            {[1, 2, 3, 4, 5].map((i) => (
-                                                <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-800/20">
-                                                    <td className="py-4 font-semibold">Cálculo Multivariable</td>
-                                                    <td className="py-4 text-slate-400">Dr. Ricardo Pérez</td>
-                                                    <td className="py-4 text-slate-400">Lab. Computación 1</td>
-                                                    <td className="py-4">
-                                                        <span className="bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-lg text-xs font-bold border border-emerald-500/20">
-                                                            Confirmado
-                                                        </span>
+                                            {topSuggestions.length === 0 ? (
+                                                <tr className="border-b border-slate-800/50">
+                                                    <td className="py-6 text-center text-slate-500 font-medium" colSpan="4">
+                                                        No hay sugerencias con los filtros actuales
                                                     </td>
                                                 </tr>
-                                            ))}
+                                            ) : (
+                                                topSuggestions.map((sug, i) => (
+                                                    <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-800/20">
+                                                        <td className="py-4 font-semibold">{sug.asignatura}</td>
+                                                        <td className="py-4 text-slate-400">{sug.docente}</td>
+                                                        <td className="py-4 text-slate-400">{sug.sala}</td>
+                                                        <td className="py-4">
+                                                            <span className={`px-2 py-1 rounded-lg text-xs font-bold border ${sug.estado === 'Confirmado' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                                                sug.estado === 'Sugerido' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                                                    'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                                                                }`}>
+                                                                {sug.estado}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
                                         </tbody>
                                     </table>
                                 </div>
@@ -1383,8 +1574,140 @@ export default function App() {
                             </div>
                         </div>
                     </>
-                )
-                }
+                )}
+
+                {/* Suggestions Modal */}
+                <AnimatePresence>
+                    {isSuggestionsModalOpen && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="glass p-8 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col border border-slate-700/50 shadow-2xl"
+                            >
+                                <div className="flex items-center justify-between mb-6">
+                                    <div>
+                                        <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Todas las Asignaciones Sugeridas</h2>
+                                        <p className="text-slate-400 text-sm mt-1">Sugerencias basadas en la capacidad de las salas y cupos.</p>
+                                    </div>
+                                    <button onClick={() => setIsSuggestionsModalOpen(false)} className="text-slate-400 hover:text-white transition-colors p-2 bg-slate-800/50 rounded-full hover:bg-slate-700/50">
+                                        <X size={24} />
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 overflow-auto rounded-xl border border-slate-700/50">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead className="bg-slate-800/80 sticky top-0 z-10 backdrop-blur-md">
+                                            <tr className="text-slate-300 text-sm">
+                                                <th className="p-4 font-semibold border-b border-slate-700/50">Asignatura</th>
+                                                <th className="p-4 font-semibold border-b border-slate-700/50">Docente</th>
+                                                <th className="p-4 font-semibold border-b border-slate-700/50">Sala</th>
+                                                <th className="p-4 font-semibold border-b border-slate-700/50 text-center">Estado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="text-sm">
+                                            {uniqueSuggestions.length === 0 ? (
+                                                <tr>
+                                                    <td className="p-8 text-center text-slate-500 font-medium bg-slate-800/30" colSpan="4">
+                                                        No hay sugerencias disponibles con los filtros actuales.
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                uniqueSuggestions.map((sug, i) => (
+                                                    <tr key={i} className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
+                                                        <td className="p-4 font-medium text-slate-200">{sug.asignatura}</td>
+                                                        <td className="p-4 text-slate-400">{sug.docente}</td>
+                                                        <td className="p-4 text-slate-400">{sug.sala}</td>
+                                                        <td className="p-4 text-center">
+                                                            <span className={`inline-flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-bold border ${sug.estado === 'Confirmado' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
+                                                                sug.estado === 'Sugerido' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
+                                                                    'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                                                                }`}>
+                                                                {sug.estado === 'Confirmado' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-2"></span>}
+                                                                {sug.estado === 'Sugerido' && <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mr-2"></span>}
+                                                                {sug.estado === 'Sobrecupo' && <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mr-2"></span>}
+                                                                {sug.estado}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
+                {/* Conflicts Modal */}
+                <AnimatePresence>
+                    {isConflictsModalOpen && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="glass p-8 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col border border-slate-700/50 shadow-2xl items-center text-center justify-center"
+                            >
+                                <div className="flex w-full items-center justify-between mb-6 text-left">
+                                    <div>
+                                        <h2 className="text-2xl font-bold flex items-center gap-2" style={{ color: '#fb7185' }}>
+                                            <AlertCircle size={24} />
+                                            Detalles de Conflictos de Horario
+                                        </h2>
+                                        <p className="text-slate-400 text-sm mt-1">Lista de asignaturas que tienen cruces de salas o docentes simultáneos.</p>
+                                    </div>
+                                    <button onClick={() => setIsConflictsModalOpen(false)} className="text-slate-400 hover:text-white transition-colors p-2 bg-slate-800/50 rounded-full hover:bg-slate-700/50">
+                                        <X size={24} />
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 overflow-auto rounded-xl w-full border border-slate-700/50 bg-slate-900/50 text-left">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead className="bg-slate-800/80 sticky top-0 z-10 backdrop-blur-md">
+                                            <tr className="text-slate-300 text-sm">
+                                                <th className="p-4 font-semibold border-b border-slate-700/50 rounded-tl-xl text-center">TIPO DE CRUCE</th>
+                                                <th className="p-4 font-semibold border-b border-slate-700/50">SALA / DOCENTE EN CRUCE</th>
+                                                <th className="p-4 font-semibold border-b border-slate-700/50">ASIGNATURA AFECTADA</th>
+                                                <th className="p-4 font-semibold border-b border-slate-700/50 text-center">HORARIO DEL CONFLICTO</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="text-sm">
+                                            {conflictDetails.length === 0 ? (
+                                                <tr>
+                                                    <td className="p-8 text-center text-slate-500 font-medium bg-slate-800/30" colSpan="4">
+                                                        No hay conflictos registrados en los horarios seleccionados.
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                conflictDetails.map((conflict, i) => (
+                                                    <tr key={i} className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
+                                                        <td className="p-4 font-bold text-center">
+                                                            <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold border ${conflict.type === 'Cruce de Sala' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30'}`}>
+                                                                {conflict.type === 'Cruce de Sala' ? <DoorOpen size={14} className="mr-1" /> : <Users size={14} className="mr-1" />}
+                                                                {conflict.type}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-4 text-slate-200 font-medium">{conflict.entity}</td>
+                                                        <td className="p-4 text-slate-300 font-semibold">{conflict.subject}</td>
+                                                        <td className="p-4 text-center">
+                                                            <div className="flex flex-col items-center">
+                                                                <span className="text-indigo-400 font-bold">{conflict.day}</span>
+                                                                <span className="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 mt-1 rounded-md">Módulo {conflict.module}</span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
             </main >
         </div >
     );
