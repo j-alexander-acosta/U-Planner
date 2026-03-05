@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Users,
     BookOpen,
@@ -25,16 +25,23 @@ const SummaryCard = ({ label, value, icon: Icon, color }) => (
     </div>
 );
 
-export default function DirectorDashboard() {
-    const carreras = [
-        'Ingeniería Civil Informática',
-        'Ingeniería Comercial',
-        'Enfermería',
-        'Psicología',
-        'Pedagogía en Inglés',
-        'Nutrición y Dietética'
-    ];
+export default function DirectorDashboard({ schedules = [] }) {
+    // Extraer carreras únicas de los horarios académicos, ignorando valores vacíos o nulos
+    const uniqueCareers = Array.from(new Set(
+        schedules
+            .map(s => s.carrera)
+            .filter(c => c && c.trim() !== '')
+    )).sort();
+
+    // Si no hay carreras en los datos, usar un placeholder
+    const carreras = uniqueCareers.length > 0 ? uniqueCareers : ['Cargando carreras...'];
     const [selectedCarrera, setSelectedCarrera] = useState(carreras[0]);
+
+    useEffect(() => {
+        if (!carreras.includes(selectedCarrera) || selectedCarrera === 'Cargando carreras...') {
+            setSelectedCarrera(carreras[0]);
+        }
+    }, [uniqueCareers.join(',')]);
     const departmentalLoad = [
         { day: 'Lun', hours: 12 },
         { day: 'Mar', hours: 15 },

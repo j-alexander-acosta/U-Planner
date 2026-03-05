@@ -1607,7 +1607,7 @@ export default function App({ user, onLogout }) {
                         </div>
                     </div>
                 ) : userRole === 'director' ? (
-                    <DirectorDashboard />
+                    <DirectorDashboard schedules={academicSchedules} />
                 ) : (
                     <>
                         {/* Modal New Schedule */}
