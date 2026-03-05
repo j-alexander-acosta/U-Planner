@@ -74,8 +74,6 @@ export default function App() {
     const [notifications, setNotifications] = useState([]);
     const [selectedDay, setSelectedDay] = useState('Todos');
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isSuggestionsModalOpen, setIsSuggestionsModalOpen] = useState(false);
-    const [isConflictsModalOpen, setIsConflictsModalOpen] = useState(false);
     const [conflictDetails, setConflictDetails] = useState([]);
     const [roomsSubTab, setRoomsSubTab] = useState('listado');
     const [roomsDayFilter, setRoomsDayFilter] = useState('Todos');
@@ -489,6 +487,124 @@ export default function App() {
         }
     }
     const topSuggestions = uniqueSuggestions.length > 0 ? uniqueSuggestions.slice(0, 6) : [];
+
+    const queryParams = new URLSearchParams(window.location.search);
+    const viewMode = queryParams.get('view');
+
+    if (viewMode === 'suggestions') {
+        return (
+            <div className="min-h-screen bg-slate-950 text-slate-50 p-8 font-sans flex flex-col items-center">
+                <div className="w-full max-w-5xl">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Todas las Asignaciones Sugeridas</h2>
+                            <p className="text-slate-400 text-sm mt-1">Sugerencias basadas en la capacidad de las salas y cupos.</p>
+                        </div>
+                    </div>
+
+                    <div className="glass overflow-hidden rounded-xl border border-slate-700/50">
+                        <table className="w-full text-left border-collapse">
+                            <thead className="bg-slate-800/80 sticky top-0 z-10 backdrop-blur-md">
+                                <tr className="text-slate-300 text-sm">
+                                    <th className="p-4 font-semibold border-b border-slate-700/50">Asignatura</th>
+                                    <th className="p-4 font-semibold border-b border-slate-700/50">Docente</th>
+                                    <th className="p-4 font-semibold border-b border-slate-700/50">Sala</th>
+                                    <th className="p-4 font-semibold border-b border-slate-700/50 text-center">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody className="text-sm">
+                                {uniqueSuggestions.length === 0 ? (
+                                    <tr>
+                                        <td className="p-8 text-center text-slate-500 font-medium bg-slate-800/30" colSpan="4">
+                                            No hay sugerencias disponibles con los filtros actuales.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    uniqueSuggestions.map((sug, i) => (
+                                        <tr key={i} className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
+                                            <td className="p-4 font-medium text-slate-200">{sug.asignatura}</td>
+                                            <td className="p-4 text-slate-400">{sug.docente}</td>
+                                            <td className="p-4 text-slate-400">{sug.sala}</td>
+                                            <td className="p-4 text-center">
+                                                <span className={`inline-flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-bold border ${sug.estado === 'Confirmado' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
+                                                    sug.estado === 'Sugerido' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
+                                                        'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                                                    }`}>
+                                                    {sug.estado === 'Confirmado' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-2"></span>}
+                                                    {sug.estado === 'Sugerido' && <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mr-2"></span>}
+                                                    {sug.estado === 'Sobrecupo' && <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mr-2"></span>}
+                                                    {sug.estado}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (viewMode === 'conflicts') {
+        return (
+            <div className="min-h-screen bg-slate-950 text-slate-50 p-8 font-sans flex flex-col items-center">
+                <div className="w-full max-w-5xl">
+                    <div className="flex w-full items-center justify-between mb-6 text-left">
+                        <div>
+                            <h2 className="text-2xl font-bold flex items-center gap-2" style={{ color: '#fb7185' }}>
+                                <AlertCircle size={24} />
+                                Detalles de Conflictos de Horario
+                            </h2>
+                            <p className="text-slate-400 text-sm mt-1">Lista de asignaturas que tienen cruces de salas o docentes simultáneos.</p>
+                        </div>
+                    </div>
+
+                    <div className="glass overflow-hidden rounded-xl w-full border border-slate-700/50 bg-slate-900/50 text-left">
+                        <table className="w-full text-left border-collapse">
+                            <thead className="bg-slate-800/80 sticky top-0 z-10 backdrop-blur-md">
+                                <tr className="text-slate-300 text-sm">
+                                    <th className="p-4 font-semibold border-b border-slate-700/50 rounded-tl-xl text-center">TIPO DE CRUCE</th>
+                                    <th className="p-4 font-semibold border-b border-slate-700/50">SALA / DOCENTE EN CRUCE</th>
+                                    <th className="p-4 font-semibold border-b border-slate-700/50">ASIGNATURA AFECTADA</th>
+                                    <th className="p-4 font-semibold border-b border-slate-700/50 text-center">HORARIO DEL CONFLICTO</th>
+                                </tr>
+                            </thead>
+                            <tbody className="text-sm">
+                                {conflictDetails.length === 0 ? (
+                                    <tr>
+                                        <td className="p-8 text-center text-slate-500 font-medium bg-slate-800/30" colSpan="4">
+                                            No hay conflictos registrados en los horarios seleccionados.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    conflictDetails.map((conflict, i) => (
+                                        <tr key={i} className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
+                                            <td className="p-4 font-bold text-center">
+                                                <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold border ${conflict.type === 'Cruce de Sala' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30'}`}>
+                                                    {conflict.type === 'Cruce de Sala' ? <DoorOpen size={14} className="mr-1" /> : <Users size={14} className="mr-1" />}
+                                                    {conflict.type}
+                                                </span>
+                                            </td>
+                                            <td className="p-4 text-slate-200 font-medium">{conflict.entity}</td>
+                                            <td className="p-4 text-slate-300 font-semibold">{conflict.subject}</td>
+                                            <td className="p-4 text-center">
+                                                <div className="flex flex-col items-center">
+                                                    <span className="text-indigo-400 font-bold">{conflict.day}</span>
+                                                    <span className="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 mt-1 rounded-md">Módulo {conflict.module}</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex min-h-screen bg-slate-950 text-slate-100 p-4">
@@ -1413,7 +1529,7 @@ export default function App() {
                                 trend={conflictsCount > 0 ? "Requiere atención" : "Optimizado"}
                                 trendColor={conflictsCount > 0 ? "text-rose-400" : "text-emerald-400"}
                                 icon={Calendar}
-                                onShowAll={conflictsCount > 0 ? () => setIsConflictsModalOpen(true) : null}
+                                onShowAll={conflictsCount > 0 ? () => window.open('?view=conflicts', '_blank') : null}
                             />
                         </section>
 
@@ -1423,7 +1539,7 @@ export default function App() {
                                     <h3 className="text-xl font-bold">Asignaciones Sugeridas</h3>
                                     <button
                                         className="text-blue-400 text-sm font-semibold flex items-center gap-1 hover:text-blue-300 transition-colors"
-                                        onClick={() => setIsSuggestionsModalOpen(true)}
+                                        onClick={() => window.open('?view=suggestions', '_blank')}
                                     >
                                         Ver todo <ChevronRight size={16} />
                                     </button>
@@ -1576,138 +1692,7 @@ export default function App() {
                     </>
                 )}
 
-                {/* Suggestions Modal */}
-                <AnimatePresence>
-                    {isSuggestionsModalOpen && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                className="glass p-8 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col border border-slate-700/50 shadow-2xl"
-                            >
-                                <div className="flex items-center justify-between mb-6">
-                                    <div>
-                                        <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Todas las Asignaciones Sugeridas</h2>
-                                        <p className="text-slate-400 text-sm mt-1">Sugerencias basadas en la capacidad de las salas y cupos.</p>
-                                    </div>
-                                    <button onClick={() => setIsSuggestionsModalOpen(false)} className="text-slate-400 hover:text-white transition-colors p-2 bg-slate-800/50 rounded-full hover:bg-slate-700/50">
-                                        <X size={24} />
-                                    </button>
-                                </div>
 
-                                <div className="flex-1 overflow-auto rounded-xl border border-slate-700/50">
-                                    <table className="w-full text-left border-collapse">
-                                        <thead className="bg-slate-800/80 sticky top-0 z-10 backdrop-blur-md">
-                                            <tr className="text-slate-300 text-sm">
-                                                <th className="p-4 font-semibold border-b border-slate-700/50">Asignatura</th>
-                                                <th className="p-4 font-semibold border-b border-slate-700/50">Docente</th>
-                                                <th className="p-4 font-semibold border-b border-slate-700/50">Sala</th>
-                                                <th className="p-4 font-semibold border-b border-slate-700/50 text-center">Estado</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="text-sm">
-                                            {uniqueSuggestions.length === 0 ? (
-                                                <tr>
-                                                    <td className="p-8 text-center text-slate-500 font-medium bg-slate-800/30" colSpan="4">
-                                                        No hay sugerencias disponibles con los filtros actuales.
-                                                    </td>
-                                                </tr>
-                                            ) : (
-                                                uniqueSuggestions.map((sug, i) => (
-                                                    <tr key={i} className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
-                                                        <td className="p-4 font-medium text-slate-200">{sug.asignatura}</td>
-                                                        <td className="p-4 text-slate-400">{sug.docente}</td>
-                                                        <td className="p-4 text-slate-400">{sug.sala}</td>
-                                                        <td className="p-4 text-center">
-                                                            <span className={`inline-flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-bold border ${sug.estado === 'Confirmado' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
-                                                                sug.estado === 'Sugerido' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
-                                                                    'bg-rose-500/10 text-rose-400 border-rose-500/30'
-                                                                }`}>
-                                                                {sug.estado === 'Confirmado' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-2"></span>}
-                                                                {sug.estado === 'Sugerido' && <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mr-2"></span>}
-                                                                {sug.estado === 'Sobrecupo' && <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mr-2"></span>}
-                                                                {sug.estado}
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
-
-                {/* Conflicts Modal */}
-                <AnimatePresence>
-                    {isConflictsModalOpen && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                className="glass p-8 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col border border-slate-700/50 shadow-2xl items-center text-center justify-center"
-                            >
-                                <div className="flex w-full items-center justify-between mb-6 text-left">
-                                    <div>
-                                        <h2 className="text-2xl font-bold flex items-center gap-2" style={{ color: '#fb7185' }}>
-                                            <AlertCircle size={24} />
-                                            Detalles de Conflictos de Horario
-                                        </h2>
-                                        <p className="text-slate-400 text-sm mt-1">Lista de asignaturas que tienen cruces de salas o docentes simultáneos.</p>
-                                    </div>
-                                    <button onClick={() => setIsConflictsModalOpen(false)} className="text-slate-400 hover:text-white transition-colors p-2 bg-slate-800/50 rounded-full hover:bg-slate-700/50">
-                                        <X size={24} />
-                                    </button>
-                                </div>
-
-                                <div className="flex-1 overflow-auto rounded-xl w-full border border-slate-700/50 bg-slate-900/50 text-left">
-                                    <table className="w-full text-left border-collapse">
-                                        <thead className="bg-slate-800/80 sticky top-0 z-10 backdrop-blur-md">
-                                            <tr className="text-slate-300 text-sm">
-                                                <th className="p-4 font-semibold border-b border-slate-700/50 rounded-tl-xl text-center">TIPO DE CRUCE</th>
-                                                <th className="p-4 font-semibold border-b border-slate-700/50">SALA / DOCENTE EN CRUCE</th>
-                                                <th className="p-4 font-semibold border-b border-slate-700/50">ASIGNATURA AFECTADA</th>
-                                                <th className="p-4 font-semibold border-b border-slate-700/50 text-center">HORARIO DEL CONFLICTO</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="text-sm">
-                                            {conflictDetails.length === 0 ? (
-                                                <tr>
-                                                    <td className="p-8 text-center text-slate-500 font-medium bg-slate-800/30" colSpan="4">
-                                                        No hay conflictos registrados en los horarios seleccionados.
-                                                    </td>
-                                                </tr>
-                                            ) : (
-                                                conflictDetails.map((conflict, i) => (
-                                                    <tr key={i} className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
-                                                        <td className="p-4 font-bold text-center">
-                                                            <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold border ${conflict.type === 'Cruce de Sala' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30'}`}>
-                                                                {conflict.type === 'Cruce de Sala' ? <DoorOpen size={14} className="mr-1" /> : <Users size={14} className="mr-1" />}
-                                                                {conflict.type}
-                                                            </span>
-                                                        </td>
-                                                        <td className="p-4 text-slate-200 font-medium">{conflict.entity}</td>
-                                                        <td className="p-4 text-slate-300 font-semibold">{conflict.subject}</td>
-                                                        <td className="p-4 text-center">
-                                                            <div className="flex flex-col items-center">
-                                                                <span className="text-indigo-400 font-bold">{conflict.day}</span>
-                                                                <span className="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 mt-1 rounded-md">Módulo {conflict.module}</span>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
             </main >
         </div >
     );
