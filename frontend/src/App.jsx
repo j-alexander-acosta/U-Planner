@@ -83,7 +83,9 @@ export default function App() {
     const [dashDayFilter, setDashDayFilter] = useState('Todos');
     const [dashModuleFilter, setDashModuleFilter] = useState('Todos');
     const [suggestionsSearchTerm, setSuggestionsSearchTerm] = useState('');
+    const [sugColFilters, setSugColFilters] = useState({ asignatura: '', docente: '', sala: '', estado: '' });
     const [conflictsSearchTerm, setConflictsSearchTerm] = useState('');
+    const [confColFilters, setConfColFilters] = useState({ type: '', entity: '', subject: '', day: '' });
     const [userRole, setUserRole] = useState('registro'); // 'registro' | 'director'
     const [selectedFile, setSelectedFile] = useState(null);
     const [teachers, setTeachers] = useState([]);
@@ -495,12 +497,20 @@ export default function App() {
 
     if (viewMode === 'suggestions') {
         const lowerSearch = suggestionsSearchTerm.toLowerCase();
-        const filteredSuggestions = uniqueSuggestions.filter(sug =>
-            (sug.asignatura?.toLowerCase() || '').includes(lowerSearch) ||
-            (sug.docente?.toLowerCase() || '').includes(lowerSearch) ||
-            (sug.sala?.toLowerCase() || '').includes(lowerSearch) ||
-            (sug.estado?.toLowerCase() || '').includes(lowerSearch)
-        );
+        const filteredSuggestions = uniqueSuggestions.filter(sug => {
+            const matchGlobal = (sug.asignatura?.toLowerCase() || '').includes(lowerSearch) ||
+                (sug.docente?.toLowerCase() || '').includes(lowerSearch) ||
+                (sug.sala?.toLowerCase() || '').includes(lowerSearch) ||
+                (sug.estado?.toLowerCase() || '').includes(lowerSearch);
+
+            const matchCols =
+                (sug.asignatura?.toLowerCase() || '').includes(sugColFilters.asignatura.toLowerCase()) &&
+                (sug.docente?.toLowerCase() || '').includes(sugColFilters.docente.toLowerCase()) &&
+                (sug.sala?.toLowerCase() || '').includes(sugColFilters.sala.toLowerCase()) &&
+                (sug.estado?.toLowerCase() || '').includes(sugColFilters.estado.toLowerCase());
+
+            return matchGlobal && matchCols;
+        });
 
         return (
             <div className="min-h-screen bg-slate-950 text-slate-50 p-8 font-sans flex flex-col items-center">
@@ -526,10 +536,54 @@ export default function App() {
                         <table className="w-full text-left border-collapse">
                             <thead className="bg-slate-800/80 sticky top-0 z-10 backdrop-blur-md">
                                 <tr className="text-slate-300 text-sm">
-                                    <th className="p-4 font-semibold border-b border-slate-700/50">Asignatura</th>
-                                    <th className="p-4 font-semibold border-b border-slate-700/50">Docente</th>
-                                    <th className="p-4 font-semibold border-b border-slate-700/50">Sala</th>
-                                    <th className="p-4 font-semibold border-b border-slate-700/50 text-center">Estado</th>
+                                    <th className="p-4 font-semibold border-b border-slate-700/50 align-top">
+                                        <div className="flex flex-col gap-2">
+                                            <span>Asignatura</span>
+                                            <input
+                                                type="text"
+                                                className="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-500 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                                                placeholder="Filtrar..."
+                                                value={sugColFilters.asignatura}
+                                                onChange={(e) => setSugColFilters({ ...sugColFilters, asignatura: e.target.value })}
+                                            />
+                                        </div>
+                                    </th>
+                                    <th className="p-4 font-semibold border-b border-slate-700/50 align-top">
+                                        <div className="flex flex-col gap-2">
+                                            <span>Docente</span>
+                                            <input
+                                                type="text"
+                                                className="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-500 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                                                placeholder="Filtrar..."
+                                                value={sugColFilters.docente}
+                                                onChange={(e) => setSugColFilters({ ...sugColFilters, docente: e.target.value })}
+                                            />
+                                        </div>
+                                    </th>
+                                    <th className="p-4 font-semibold border-b border-slate-700/50 align-top">
+                                        <div className="flex flex-col gap-2">
+                                            <span>Sala</span>
+                                            <input
+                                                type="text"
+                                                className="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-500 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                                                placeholder="Filtrar..."
+                                                value={sugColFilters.sala}
+                                                onChange={(e) => setSugColFilters({ ...sugColFilters, sala: e.target.value })}
+                                            />
+                                        </div>
+                                    </th>
+                                    <th className="p-4 font-semibold border-b border-slate-700/50 text-center align-top">
+                                        <div className="flex flex-col gap-2 items-center">
+                                            <span>Estado</span>
+                                            <input
+                                                type="text"
+                                                className="w-full max-w-[100px] bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-500 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500/50 text-center"
+                                                placeholder="Filtrar..."
+                                                value={sugColFilters.estado}
+                                                onChange={(e) => setSugColFilters({ ...sugColFilters, estado: e.target.value })}
+                                            />
+                                        </div>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="text-sm">
@@ -569,13 +623,22 @@ export default function App() {
 
     if (viewMode === 'conflicts') {
         const lowerSearch = conflictsSearchTerm.toLowerCase();
-        const filteredConflicts = conflictDetails.filter(conflict =>
-            (conflict.type?.toLowerCase() || '').includes(lowerSearch) ||
-            (conflict.entity?.toLowerCase() || '').includes(lowerSearch) ||
-            (conflict.subject?.toLowerCase() || '').includes(lowerSearch) ||
-            (conflict.day?.toLowerCase() || '').includes(lowerSearch) ||
-            (String(conflict.module)?.toLowerCase() || '').includes(lowerSearch)
-        );
+        const filteredConflicts = conflictDetails.filter(conflict => {
+            const matchGlobal = (conflict.type?.toLowerCase() || '').includes(lowerSearch) ||
+                (conflict.entity?.toLowerCase() || '').includes(lowerSearch) ||
+                (conflict.subject?.toLowerCase() || '').includes(lowerSearch) ||
+                (conflict.day?.toLowerCase() || '').includes(lowerSearch) ||
+                (String(conflict.module)?.toLowerCase() || '').includes(lowerSearch);
+
+            const matchCols =
+                (conflict.type?.toLowerCase() || '').includes(confColFilters.type.toLowerCase()) &&
+                (conflict.entity?.toLowerCase() || '').includes(confColFilters.entity.toLowerCase()) &&
+                (conflict.subject?.toLowerCase() || '').includes(confColFilters.subject.toLowerCase()) &&
+                ((conflict.day?.toLowerCase() || '').includes(confColFilters.day.toLowerCase()) ||
+                    (String(conflict.module)?.toLowerCase() || '').includes(confColFilters.day.toLowerCase()));
+
+            return matchGlobal && matchCols;
+        });
 
         return (
             <div className="min-h-screen bg-slate-950 text-slate-50 p-8 font-sans flex flex-col items-center">
@@ -604,10 +667,54 @@ export default function App() {
                         <table className="w-full text-left border-collapse">
                             <thead className="bg-slate-800/80 sticky top-0 z-10 backdrop-blur-md">
                                 <tr className="text-slate-300 text-sm">
-                                    <th className="p-4 font-semibold border-b border-slate-700/50 rounded-tl-xl text-center">TIPO DE CRUCE</th>
-                                    <th className="p-4 font-semibold border-b border-slate-700/50">SALA / DOCENTE EN CRUCE</th>
-                                    <th className="p-4 font-semibold border-b border-slate-700/50">ASIGNATURA AFECTADA</th>
-                                    <th className="p-4 font-semibold border-b border-slate-700/50 text-center">HORARIO DEL CONFLICTO</th>
+                                    <th className="p-4 font-semibold border-b border-slate-700/50 rounded-tl-xl text-center align-top">
+                                        <div className="flex flex-col gap-2 items-center">
+                                            <span>TIPO DE CRUCE</span>
+                                            <input
+                                                type="text"
+                                                className="w-full max-w-[120px] bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-500 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-rose-500/50 text-center"
+                                                placeholder="Filtrar..."
+                                                value={confColFilters.type}
+                                                onChange={(e) => setConfColFilters({ ...confColFilters, type: e.target.value })}
+                                            />
+                                        </div>
+                                    </th>
+                                    <th className="p-4 font-semibold border-b border-slate-700/50 align-top">
+                                        <div className="flex flex-col gap-2">
+                                            <span>SALA / DOCENTE EN CRUCE</span>
+                                            <input
+                                                type="text"
+                                                className="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-500 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-rose-500/50"
+                                                placeholder="Filtrar..."
+                                                value={confColFilters.entity}
+                                                onChange={(e) => setConfColFilters({ ...confColFilters, entity: e.target.value })}
+                                            />
+                                        </div>
+                                    </th>
+                                    <th className="p-4 font-semibold border-b border-slate-700/50 align-top">
+                                        <div className="flex flex-col gap-2">
+                                            <span>ASIGNATURA AFECTADA</span>
+                                            <input
+                                                type="text"
+                                                className="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-500 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-rose-500/50"
+                                                placeholder="Filtrar..."
+                                                value={confColFilters.subject}
+                                                onChange={(e) => setConfColFilters({ ...confColFilters, subject: e.target.value })}
+                                            />
+                                        </div>
+                                    </th>
+                                    <th className="p-4 font-semibold border-b border-slate-700/50 text-center align-top">
+                                        <div className="flex flex-col gap-2 items-center">
+                                            <span>HORARIO DEL CONFLICTO</span>
+                                            <input
+                                                type="text"
+                                                className="w-full max-w-[150px] bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-500 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-rose-500/50 text-center"
+                                                placeholder="Filtrar..."
+                                                value={confColFilters.day}
+                                                onChange={(e) => setConfColFilters({ ...confColFilters, day: e.target.value })}
+                                            />
+                                        </div>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="text-sm">
