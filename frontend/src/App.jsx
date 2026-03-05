@@ -69,7 +69,7 @@ const StatCard = ({ label, value, trend, icon: Icon, trendColor, onShowAll }) =>
     </div>
 );
 
-export default function App() {
+export default function App({ user, onLogout }) {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [notifications, setNotifications] = useState([]);
     const [selectedDay, setSelectedDay] = useState('Todos');
@@ -845,6 +845,28 @@ export default function App() {
                         active={activeTab === 'settings'}
                         onClick={() => setActiveTab('settings')}
                     />
+                </div>
+
+                {/* User Profile in Sidebar Bottom */}
+                <div className="mt-4 pt-4 border-t border-slate-800 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 p-0.5 shrink-0">
+                        {user?.picture ? (
+                            <img src={user.picture} alt="Profile" className="w-full h-full rounded-full object-cover border-2 border-slate-900" referrerPolicy="no-referrer" />
+                        ) : (
+                            <div className="w-full h-full rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center">
+                                <Users size={16} className="text-white" />
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                        <p className="text-sm font-semibold text-slate-200 truncate">{user?.name || 'Usuario'}</p>
+                        <button
+                            onClick={onLogout}
+                            className="text-xs text-rose-400 hover:text-rose-300 font-medium transition-colors text-left"
+                        >
+                            Cerrar Sesión
+                        </button>
+                    </div>
                 </div>
             </aside>
 
