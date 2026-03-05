@@ -82,6 +82,8 @@ export default function App() {
     const [dashGroupFilter, setDashGroupFilter] = useState('Todos');
     const [dashDayFilter, setDashDayFilter] = useState('Todos');
     const [dashModuleFilter, setDashModuleFilter] = useState('Todos');
+    const [suggestionsSearchTerm, setSuggestionsSearchTerm] = useState('');
+    const [conflictsSearchTerm, setConflictsSearchTerm] = useState('');
     const [userRole, setUserRole] = useState('registro'); // 'registro' | 'director'
     const [selectedFile, setSelectedFile] = useState(null);
     const [teachers, setTeachers] = useState([]);
@@ -492,13 +494,31 @@ export default function App() {
     const viewMode = queryParams.get('view');
 
     if (viewMode === 'suggestions') {
+        const lowerSearch = suggestionsSearchTerm.toLowerCase();
+        const filteredSuggestions = uniqueSuggestions.filter(sug =>
+            (sug.asignatura?.toLowerCase() || '').includes(lowerSearch) ||
+            (sug.docente?.toLowerCase() || '').includes(lowerSearch) ||
+            (sug.sala?.toLowerCase() || '').includes(lowerSearch) ||
+            (sug.estado?.toLowerCase() || '').includes(lowerSearch)
+        );
+
         return (
             <div className="min-h-screen bg-slate-950 text-slate-50 p-8 font-sans flex flex-col items-center">
                 <div className="w-full max-w-5xl">
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
                         <div>
                             <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Todas las Asignaciones Sugeridas</h2>
                             <p className="text-slate-400 text-sm mt-1">Sugerencias basadas en la capacidad de las salas y cupos.</p>
+                        </div>
+                        <div className="relative w-full md:w-72">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                            <input
+                                type="text"
+                                placeholder="Buscar asignatura, docente, sala..."
+                                value={suggestionsSearchTerm}
+                                onChange={(e) => setSuggestionsSearchTerm(e.target.value)}
+                                className="w-full bg-slate-800/50 border border-slate-700 text-slate-200 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                            />
                         </div>
                     </div>
 
@@ -513,14 +533,14 @@ export default function App() {
                                 </tr>
                             </thead>
                             <tbody className="text-sm">
-                                {uniqueSuggestions.length === 0 ? (
+                                {filteredSuggestions.length === 0 ? (
                                     <tr>
                                         <td className="p-8 text-center text-slate-500 font-medium bg-slate-800/30" colSpan="4">
-                                            No hay sugerencias disponibles con los filtros actuales.
+                                            {uniqueSuggestions.length === 0 ? "No hay sugerencias disponibles con los filtros actuales." : "No se encontraron sugerencias que coincidan con la búsqueda."}
                                         </td>
                                     </tr>
                                 ) : (
-                                    uniqueSuggestions.map((sug, i) => (
+                                    filteredSuggestions.map((sug, i) => (
                                         <tr key={i} className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
                                             <td className="p-4 font-medium text-slate-200">{sug.asignatura}</td>
                                             <td className="p-4 text-slate-400">{sug.docente}</td>
@@ -548,16 +568,35 @@ export default function App() {
     }
 
     if (viewMode === 'conflicts') {
+        const lowerSearch = conflictsSearchTerm.toLowerCase();
+        const filteredConflicts = conflictDetails.filter(conflict =>
+            (conflict.type?.toLowerCase() || '').includes(lowerSearch) ||
+            (conflict.entity?.toLowerCase() || '').includes(lowerSearch) ||
+            (conflict.subject?.toLowerCase() || '').includes(lowerSearch) ||
+            (conflict.day?.toLowerCase() || '').includes(lowerSearch) ||
+            (String(conflict.module)?.toLowerCase() || '').includes(lowerSearch)
+        );
+
         return (
             <div className="min-h-screen bg-slate-950 text-slate-50 p-8 font-sans flex flex-col items-center">
                 <div className="w-full max-w-5xl">
-                    <div className="flex w-full items-center justify-between mb-6 text-left">
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4 text-left">
                         <div>
                             <h2 className="text-2xl font-bold flex items-center gap-2" style={{ color: '#fb7185' }}>
                                 <AlertCircle size={24} />
                                 Detalles de Conflictos de Horario
                             </h2>
                             <p className="text-slate-400 text-sm mt-1">Lista de asignaturas que tienen cruces de salas o docentes simultáneos.</p>
+                        </div>
+                        <div className="relative w-full md:w-72">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                            <input
+                                type="text"
+                                placeholder="Buscar asignatura, sala, módulo..."
+                                value={conflictsSearchTerm}
+                                onChange={(e) => setConflictsSearchTerm(e.target.value)}
+                                className="w-full bg-slate-800/50 border border-slate-700 text-slate-200 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50"
+                            />
                         </div>
                     </div>
 
@@ -572,14 +611,14 @@ export default function App() {
                                 </tr>
                             </thead>
                             <tbody className="text-sm">
-                                {conflictDetails.length === 0 ? (
+                                {filteredConflicts.length === 0 ? (
                                     <tr>
                                         <td className="p-8 text-center text-slate-500 font-medium bg-slate-800/30" colSpan="4">
-                                            No hay conflictos registrados en los horarios seleccionados.
+                                            {conflictDetails.length === 0 ? "No hay conflictos registrados en los horarios seleccionados." : "No se encontraron conflictos que coincidan con la búsqueda."}
                                         </td>
                                     </tr>
                                 ) : (
-                                    conflictDetails.map((conflict, i) => (
+                                    filteredConflicts.map((conflict, i) => (
                                         <tr key={i} className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
                                             <td className="p-4 font-bold text-center">
                                                 <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold border ${conflict.type === 'Cruce de Sala' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30'}`}>
