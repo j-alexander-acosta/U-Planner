@@ -517,7 +517,7 @@ export default function App() {
                                 placeholder="Buscar asignatura, docente, sala..."
                                 value={suggestionsSearchTerm}
                                 onChange={(e) => setSuggestionsSearchTerm(e.target.value)}
-                                className="w-full bg-slate-800/50 border border-slate-700 text-slate-200 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                className="w-full bg-slate-900 border border-slate-700 text-white placeholder-slate-400 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                             />
                         </div>
                     </div>
@@ -595,7 +595,7 @@ export default function App() {
                                 placeholder="Buscar asignatura, sala, módulo..."
                                 value={conflictsSearchTerm}
                                 onChange={(e) => setConflictsSearchTerm(e.target.value)}
-                                className="w-full bg-slate-800/50 border border-slate-700 text-slate-200 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50"
+                                className="w-full bg-slate-900 border border-slate-700 text-white placeholder-slate-400 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50"
                             />
                         </div>
                     </div>
