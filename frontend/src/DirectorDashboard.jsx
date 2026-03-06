@@ -36,25 +36,30 @@ export default function DirectorDashboard({ schedules = [] }) {
     // Si no hay carreras en los datos, usar un placeholder
     const carreras = uniqueCareers.length > 0 ? uniqueCareers : ['Cargando carreras...'];
     const [selectedCarrera, setSelectedCarrera] = useState(carreras[0]);
+    const [selectedTeacher, setSelectedTeacher] = useState('Todos los docentes');
 
     useEffect(() => {
         if (!carreras.includes(selectedCarrera) || selectedCarrera === 'Cargando carreras...') {
             setSelectedCarrera(carreras[0]);
         }
-    }, [uniqueCareers.join(',')]);
+        setSelectedTeacher('Todos los docentes'); // Reiniciar filtro al cambiar de carrera
+    }, [uniqueCareers.join(','), selectedCarrera]);
 
     // Filtrar los horarios en base a la carrera seleccionada
     const filteredSchedules = schedules.filter(s => s.carrera === selectedCarrera);
 
+    // Docentes únicos de la carrera
+    const careerTeachers = Array.from(new Set(
+        filteredSchedules
+            .map(s => s.docente)
+            .filter(d => d && d.toUpperCase() !== 'POR DEFINIR' && d.trim() !== '')
+    )).sort();
+
     // Calcular métricas dinámicas
     const activeSubjects = new Set(filteredSchedules.map(s => s.asignatura).filter(Boolean)).size;
     const activeTeachers = new Set(filteredSchedules.map(s => s.docente).filter(d => d && d.toUpperCase() !== 'POR DEFINIR' && d.trim() !== '')).size;
-    // Asumiremos que cada módulo corresponde a un bloque de horas. Para simplificar, total de entradas = total horas/bloques
-    // Frecuentemente en universidades de Chile 1 módulo = 1.5 horas cronológicas o 2 pedagógicas. Contaremos los módulos totales.
     const totalHours = filteredSchedules.filter(s => s.modulo_horario).length * 1.5;
 
-    // Determinar Conflictos (simplificado: mismo docente, mismo día y mismo bloque en la carrera)
-    // Para simplificar, si hay 2 entradas con el mismo docente, día y módulo, es conflicto.
     const conflicts = new Set();
     const scheduleKeys = new Set();
     filteredSchedules.forEach(s => {
@@ -117,7 +122,17 @@ export default function DirectorDashboard({ schedules = [] }) {
                 <div className="lg:col-span-2 glass p-6">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-xl font-bold">Resumen de Asignaciones ({filteredSchedules.length})</h3>
-                        <div className="flex gap-2">
+                        <div className="flex gap-4 items-center">
+                            <select
+                                value={selectedTeacher}
+                                onChange={(e) => setSelectedTeacher(e.target.value)}
+                                className="bg-slate-800 border border-slate-700 text-sm p-1.5 rounded-lg text-slate-200 outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer w-[250px]"
+                            >
+                                <option value="Todos los docentes">Todos los docentes</option>
+                                {careerTeachers.map(teacher => (
+                                    <option key={teacher} value={teacher}>{teacher}</option>
+                                ))}
+                            </select>
                             <button className="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg font-medium transition-colors">
                                 Exportar PDF
                             </button>
@@ -135,22 +150,25 @@ export default function DirectorDashboard({ schedules = [] }) {
                                 </tr>
                             </thead>
                             <tbody className="text-sm">
-                                {filteredSchedules.slice(0, 50).map((row, idx) => {
-                                    const isConflict = row.docente && row.docente.toUpperCase() !== 'POR DEFINIR' &&
-                                        conflicts.has(`${row.docente}-${row.dia}-${row.modulo_horario}`);
-                                    return (
-                                        <tr key={idx} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
-                                            <td className="py-4 font-semibold">{row.asignatura || 'Sin Asignatura'}</td>
-                                            <td className="py-4 text-slate-400">{row.docente || 'Por Definir'}</td>
-                                            <td className="py-4 text-slate-400">{row.dia} {row.modulo_horario}</td>
-                                            <td className="py-4">
-                                                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${isConflict ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
-                                                    {isConflict ? 'Conflicto' : 'Aprobado'}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
+                                {filteredSchedules
+                                    .filter(row => selectedTeacher === 'Todos los docentes' || row.docente === selectedTeacher)
+                                    .slice(0, 50)
+                                    .map((row, idx) => {
+                                        const isConflict = row.docente && row.docente.toUpperCase() !== 'POR DEFINIR' &&
+                                            conflicts.has(`${row.docente}-${row.dia}-${row.modulo_horario}`);
+                                        return (
+                                            <tr key={idx} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
+                                                <td className="py-4 font-semibold">{row.asignatura || 'Sin Asignatura'}</td>
+                                                <td className="py-4 text-slate-400">{row.docente || 'Por Definir'}</td>
+                                                <td className="py-4 text-slate-400">{row.dia} {row.modulo_horario}</td>
+                                                <td className="py-4">
+                                                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${isConflict ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
+                                                        {isConflict ? 'Conflicto' : 'Aprobado'}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                             </tbody>
                         </table>
                     </div>
@@ -183,7 +201,7 @@ export default function DirectorDashboard({ schedules = [] }) {
             </div>
 
             {/* Teacher Load Indicators */}
-            <div className="glass p-6">
+            < div className="glass p-6" >
                 <h3 className="text-xl font-bold mb-6">Estado de Plantilla Docente</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {[
@@ -212,7 +230,7 @@ export default function DirectorDashboard({ schedules = [] }) {
                         </div>
                     ))}
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
