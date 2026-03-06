@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
 const SummaryCard = ({ label, value, icon: Icon, color }) => (
@@ -120,15 +120,15 @@ export default function DirectorDashboard({ schedules = [] }) {
         filteredSchedules.forEach(schedule => {
             const rowData = [
                 schedule.asignatura || 'N/A',
-                schedule.docente || 'N/A',
+                schedule.docente || 'Por Definir',
                 schedule.dia || 'N/A',
-                schedule.horario || 'N/A',
+                schedule.modulo_horario || 'N/A',
                 'Aprobado'
             ];
             tableRows.push(rowData);
         });
 
-        doc.autoTable({
+        autoTable(doc, {
             head: [tableColumn],
             body: tableRows,
             startY: selectedTeacher !== 'Todos los docentes' ? 30 : 25,
@@ -143,9 +143,9 @@ export default function DirectorDashboard({ schedules = [] }) {
     const handleExportExcel = () => {
         const wsData = filteredSchedules.map(schedule => ({
             "Asignatura": schedule.asignatura || 'N/A',
-            "Docente": schedule.docente || 'N/A',
+            "Docente": schedule.docente || 'Por Definir',
             "Día": schedule.dia || 'N/A',
-            "Bloque": schedule.horario || 'N/A',
+            "Bloque": schedule.modulo_horario || 'N/A',
             "Estado": "Aprobado"
         }));
         const ws = XLSX.utils.json_to_sheet(wsData);

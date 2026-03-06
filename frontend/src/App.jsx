@@ -779,10 +779,10 @@ export default function App({ user, onLogout }) {
                     <select
                         value={userRole}
                         onChange={(e) => setUserRole(e.target.value)}
-                        className="bg-slate-700/80 border border-slate-600 text-sm font-medium p-2.5 rounded-lg text-white outline-none cursor-pointer hover:bg-slate-700 transition-colors focus:ring-2 focus:ring-blue-500/50"
+                        className="bg-slate-800 border border-slate-700 text-sm font-medium p-2.5 rounded-lg text-slate-100 outline-none cursor-pointer hover:bg-slate-700 transition-colors focus:ring-2 focus:ring-blue-500/50"
                     >
-                        <option value="registro">Registro Académico</option>
-                        <option value="director">Director de Carrera</option>
+                        <option className="bg-slate-900 text-slate-100 py-2" value="registro">Registro Académico</option>
+                        <option className="bg-slate-900 text-slate-100 py-2" value="director">Director de Carrera</option>
                     </select>
                 </div>
 
