@@ -875,7 +875,7 @@ export default function App({ user, onLogout }) {
                 <header className="flex items-center justify-between">
                     {activeTab === 'dashboard' && (
                         <div>
-                            <h2 className="text-3xl font-bold">Bienvenido, Alexander</h2>
+                            <h2 className="text-3xl font-bold">Bienvenido, {user?.name || 'Usuario'}</h2>
                             <p className="text-slate-400 mt-1">Gestión académica Universidad Adventista de Chile</p>
                         </div>
                     )}
