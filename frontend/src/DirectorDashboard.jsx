@@ -200,20 +200,22 @@ export default function DirectorDashboard({ schedules = [] }) {
                 {/* Weekly Load Chart Visual */}
                 <div className="glass p-6 flex flex-col gap-6">
                     <h3 className="text-xl font-bold">Carga Semanal</h3>
-                    <div className="flex-1 flex items-end justify-between gap-2 px-2 pb-2">
+                    <div className="flex-1 flex items-stretch justify-between gap-2 px-2 pb-2 min-h-[160px]">
                         {departmentalLoad.map((data, idx) => (
-                            <div key={idx} className="flex-1 flex flex-col items-center gap-3">
-                                <div className="text-xs text-slate-500 font-medium">{data.hours}h</div>
-                                <motion.div
-                                    initial={{ height: 0 }}
-                                    animate={{ height: `${Math.min(data.hours * 2, 100)}px` }}
-                                    className="w-full bg-gradient-to-t from-blue-600/40 to-blue-400 rounded-t-lg relative group"
-                                >
-                                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                        {data.hours} horas
-                                    </div>
-                                </motion.div>
-                                <span className="text-xs font-bold text-slate-400 uppercase">{data.day}</span>
+                            <div key={idx} className="flex-1 flex flex-col items-center gap-2">
+                                <span className="text-xs font-bold text-slate-200 uppercase mb-2">{data.day}</span>
+                                <div className="flex-1 flex flex-col justify-end w-full items-center gap-2">
+                                    <div className="text-xs text-slate-500 font-medium">{data.hours}h</div>
+                                    <motion.div
+                                        initial={{ height: 0 }}
+                                        animate={{ height: `${Math.min(data.hours * 2, 100)}px` }}
+                                        className="w-full bg-gradient-to-t from-blue-600/40 to-blue-400 rounded-t-lg relative group"
+                                    >
+                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                                            {data.hours} horas
+                                        </div>
+                                    </motion.div>
+                                </div>
                             </div>
                         ))}
                     </div>
