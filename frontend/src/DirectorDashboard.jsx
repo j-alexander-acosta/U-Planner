@@ -89,12 +89,16 @@ export default function DirectorDashboard({ schedules = [] }) {
     });
     const pendingConflicts = conflicts.size;
 
+    const schedulesForChart = selectedTeacher === 'Todos los docentes'
+        ? filteredSchedules
+        : filteredSchedules.filter(s => s.docente === selectedTeacher);
+
     const departmentalLoad = [
-        { day: 'Lun', hours: filteredSchedules.filter(s => s.dia && s.dia.includes('Lunes')).length * 1.5 || 0 },
-        { day: 'Mar', hours: filteredSchedules.filter(s => s.dia && s.dia.includes('Martes')).length * 1.5 || 0 },
-        { day: 'Mie', hours: filteredSchedules.filter(s => s.dia && s.dia.includes('Miércoles')).length * 1.5 || 0 },
-        { day: 'Jue', hours: filteredSchedules.filter(s => s.dia && s.dia.includes('Jueves')).length * 1.5 || 0 },
-        { day: 'Vie', hours: filteredSchedules.filter(s => s.dia && s.dia.includes('Viernes')).length * 1.5 || 0 },
+        { day: 'Lun', hours: schedulesForChart.filter(s => s.dia && s.dia.includes('Lunes')).length * 1.5 || 0 },
+        { day: 'Mar', hours: schedulesForChart.filter(s => s.dia && s.dia.includes('Martes')).length * 1.5 || 0 },
+        { day: 'Mie', hours: schedulesForChart.filter(s => s.dia && s.dia.includes('Miércoles')).length * 1.5 || 0 },
+        { day: 'Jue', hours: schedulesForChart.filter(s => s.dia && s.dia.includes('Jueves')).length * 1.5 || 0 },
+        { day: 'Vie', hours: schedulesForChart.filter(s => s.dia && s.dia.includes('Viernes')).length * 1.5 || 0 },
     ];
 
     const filteredWorkloads = selectedTeacher === 'Todos los docentes'
@@ -229,7 +233,7 @@ export default function DirectorDashboard({ schedules = [] }) {
                                 <div className="flex justify-between items-center">
                                     <span className="font-semibold">{prof.name}</span>
                                     <span className={`text-[10px] font-bold uppercase tracking-wider ${prof.load >= 80 ? 'text-red-400' :
-                                            prof.load >= 50 ? 'text-yellow-400' : 'text-emerald-400'
+                                        prof.load >= 50 ? 'text-yellow-400' : 'text-emerald-400'
                                         }`}>
                                         {prof.status}
                                     </span>
@@ -237,7 +241,7 @@ export default function DirectorDashboard({ schedules = [] }) {
                                 <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
                                     <div
                                         className={`h-full transition-all duration-1000 ${prof.load >= 80 ? 'bg-red-500' :
-                                                prof.load >= 50 ? 'bg-yellow-500' : 'bg-emerald-500'
+                                            prof.load >= 50 ? 'bg-yellow-500' : 'bg-emerald-500'
                                             }`}
                                         style={{ width: `${prof.load}%` }}
                                     />
