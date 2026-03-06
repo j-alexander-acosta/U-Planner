@@ -9,6 +9,9 @@ import {
     AlertTriangle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 const SummaryCard = ({ label, value, icon: Icon, color }) => (
     <div className="glass p-5 flex flex-col gap-3">
@@ -104,6 +107,52 @@ export default function DirectorDashboard({ schedules = [] }) {
     const filteredWorkloads = selectedTeacher === 'Todos los docentes'
         ? teacherWorkloads
         : teacherWorkloads.filter(w => w.name === selectedTeacher);
+    const handleExportPDF = () => {
+        const doc = new jsPDF();
+        doc.text(`Resumen de Asignaciones - ${selectedCarrera}`, 14, 15);
+        if (selectedTeacher !== 'Todos los docentes') {
+            doc.text(`Docente: ${selectedTeacher}`, 14, 25);
+        }
+
+        const tableColumn = ["Asignatura", "Docente", "Día", "Bloque", "Estado"];
+        const tableRows = [];
+
+        filteredSchedules.forEach(schedule => {
+            const rowData = [
+                schedule.asignatura || 'N/A',
+                schedule.docente || 'N/A',
+                schedule.dia || 'N/A',
+                schedule.horario || 'N/A',
+                'Aprobado'
+            ];
+            tableRows.push(rowData);
+        });
+
+        doc.autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: selectedTeacher !== 'Todos los docentes' ? 30 : 25,
+            theme: 'grid',
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [59, 130, 246] }
+        });
+
+        doc.save(`Asignaciones_${selectedCarrera.replace(/\s+/g, '_')}.pdf`);
+    };
+
+    const handleExportExcel = () => {
+        const wsData = filteredSchedules.map(schedule => ({
+            "Asignatura": schedule.asignatura || 'N/A',
+            "Docente": schedule.docente || 'N/A',
+            "Día": schedule.dia || 'N/A',
+            "Bloque": schedule.horario || 'N/A',
+            "Estado": "Aprobado"
+        }));
+        const ws = XLSX.utils.json_to_sheet(wsData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Asignaciones");
+        XLSX.writeFile(wb, `Asignaciones_${selectedCarrera.replace(/\s+/g, '_')}.xlsx`);
+    };
 
     return (
         <div className="flex flex-col gap-6 animate-in fade-in duration-500">
@@ -156,9 +205,14 @@ export default function DirectorDashboard({ schedules = [] }) {
                                     <option key={teacher} value={teacher}>{teacher}</option>
                                 ))}
                             </select>
-                            <button className="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg font-medium transition-colors">
-                                Exportar PDF
-                            </button>
+                            <div className="flex gap-2">
+                                <button onClick={handleExportExcel} className="text-xs bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-2">
+                                    📥 Excel
+                                </button>
+                                <button onClick={handleExportPDF} className="text-xs bg-red-600/20 text-red-400 border border-red-500/30 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-2">
+                                    📥 PDF
+                                </button>
+                            </div>
                         </div>
                     </div>
 
