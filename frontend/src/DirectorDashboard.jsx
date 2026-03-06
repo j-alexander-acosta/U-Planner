@@ -228,13 +228,17 @@ export default function DirectorDashboard({ schedules = [] }) {
                             <div key={idx} className="flex flex-col gap-3">
                                 <div className="flex justify-between items-center">
                                     <span className="font-semibold">{prof.name}</span>
-                                    <span className={`text-[10px] font-bold uppercase tracking-wider ${prof.load >= 80 ? 'text-red-400' : 'text-slate-500'}`}>
+                                    <span className={`text-[10px] font-bold uppercase tracking-wider ${prof.load >= 80 ? 'text-red-400' :
+                                            prof.load >= 50 ? 'text-yellow-400' : 'text-emerald-400'
+                                        }`}>
                                         {prof.status}
                                     </span>
                                 </div>
                                 <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
                                     <div
-                                        className={`h-full transition-all duration-1000 ${prof.load >= 80 ? 'bg-red-500' : 'bg-emerald-500'}`}
+                                        className={`h-full transition-all duration-1000 ${prof.load >= 80 ? 'bg-red-500' :
+                                                prof.load >= 50 ? 'bg-yellow-500' : 'bg-emerald-500'
+                                            }`}
                                         style={{ width: `${prof.load}%` }}
                                     />
                                 </div>

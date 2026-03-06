@@ -241,12 +241,20 @@ button:active {
     background-color: #10b981;
 }
 
+.bg-emerald-500 {
+    background-color: #10b981;
+}
+
 .bg-emerald-500\/10 {
     background-color: rgba(16, 185, 129, 0.1);
 }
 
 .bg-red-500 {
     background-color: #ef4444;
+}
+
+.bg-yellow-500 {
+    background-color: #eab308;
 }
 
 .bg-transparent {
@@ -280,6 +288,14 @@ button:active {
 
 .text-emerald-400 {
     color: #34d399;
+}
+
+.text-red-400 {
+    color: #f87171;
+}
+
+.text-yellow-400 {
+    color: #facc15;
 }
 
 .text-sm {
