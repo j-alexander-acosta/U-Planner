@@ -97,6 +97,10 @@ export default function DirectorDashboard({ schedules = [] }) {
         { day: 'Vie', hours: filteredSchedules.filter(s => s.dia && s.dia.includes('Viernes')).length * 1.5 || 0 },
     ];
 
+    const filteredWorkloads = selectedTeacher === 'Todos los docentes'
+        ? teacherWorkloads
+        : teacherWorkloads.filter(w => w.name === selectedTeacher);
+
     return (
         <div className="flex flex-col gap-6 animate-in fade-in duration-500">
             <div className="flex justify-between items-end">
@@ -219,8 +223,8 @@ export default function DirectorDashboard({ schedules = [] }) {
             <div className="glass p-6">
                 <h3 className="text-xl font-bold mb-6">Estado de Plantilla Docente</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {teacherWorkloads.length > 0 ? (
-                        teacherWorkloads.map((prof, idx) => (
+                    {filteredWorkloads.length > 0 ? (
+                        filteredWorkloads.map((prof, idx) => (
                             <div key={idx} className="flex flex-col gap-3">
                                 <div className="flex justify-between items-center">
                                     <span className="font-semibold">{prof.name}</span>
