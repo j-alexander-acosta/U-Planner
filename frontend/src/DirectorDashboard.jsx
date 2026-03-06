@@ -205,7 +205,6 @@ export default function DirectorDashboard({ schedules = [] }) {
                             <div key={idx} className="flex-1 flex flex-col items-center gap-2">
                                 <span className="text-xs font-bold text-slate-200 uppercase mb-2">{data.day}</span>
                                 <div className="flex-1 flex flex-col justify-end w-full items-center gap-2">
-                                    <div className="text-xs text-slate-500 font-medium">{data.hours}h</div>
                                     <motion.div
                                         initial={{ height: 0 }}
                                         animate={{ height: `${Math.min(data.hours * 2, 100)}px` }}
