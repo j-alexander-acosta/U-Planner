@@ -237,6 +237,10 @@ button:active {
     background-color: #3b82f6;
 }
 
+.bg-emerald-500 {
+    background-color: #10b981;
+}
+
 .bg-emerald-500\/10 {
     background-color: rgba(16, 185, 129, 0.1);
 }
