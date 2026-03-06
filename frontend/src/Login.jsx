@@ -50,31 +50,46 @@ export default function Login({ onLoginSuccess }) {
     };
 
     return (
-        <div className="min-h-screen w-full bg-slate-950 text-slate-100 flex items-center justify-center relative overflow-hidden font-sans">
+        <div
+            className="min-h-screen w-full bg-slate-950 text-slate-100 flex items-center justify-center font-sans relative overflow-hidden"
+            style={{ position: 'relative' }}
+        >
             {/* Elementos decorativos de fondo */}
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
-            <div className="absolute bottom-[-100px] left-[-100px] w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none"></div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(ellipse_at_center,rgba(15,23,42,0)_0%,rgba(2,6,23,1)_100%)] pointer-events-none"></div>
+            <div style={{ position: 'absolute', top: 0, right: 0, width: '500px', height: '500px', backgroundColor: 'rgba(37, 99, 235, 0.1)', borderRadius: '50%', filter: 'blur(100px)', pointerEvents: 'none' }}></div>
+            <div style={{ position: 'absolute', bottom: '-100px', left: '-100px', width: '600px', height: '600px', backgroundColor: 'rgba(79, 70, 229, 0.1)', borderRadius: '50%', filter: 'blur(120px)', pointerEvents: 'none' }}></div>
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '100%', height: '100%', background: 'radial-gradient(ellipse at center, rgba(15,23,42,0) 0%, rgba(2,6,23,1) 100%)', pointerEvents: 'none' }}></div>
 
             <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                className="glass p-10 rounded-2xl border border-slate-700/50 w-full max-w-md mx-auto relative z-10 flex flex-col items-center shadow-2xl shadow-blue-900/20"
+                className="glass flex flex-col items-center"
+                style={{
+                    padding: '2.5rem',
+                    borderRadius: '1rem',
+                    border: '1px solid rgba(51, 65, 85, 0.5)',
+                    width: '100%',
+                    maxWidth: '400px',
+                    zIndex: 10,
+                    boxShadow: '0 25px 50px -12px rgba(30, 58, 138, 0.3)'
+                }}
             >
-                <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-4 rounded-full mb-6 shadow-lg shadow-blue-500/30">
+                <div
+                    className="flex items-center justify-center mb-6"
+                    style={{ background: 'linear-gradient(to bottom right, #3b82f6, #4f46e5)', padding: '1rem', borderRadius: '50%', boxShadow: '0 10px 15px -3px rgba(59, 130, 246, 0.3)' }}
+                >
                     <Calendar size={40} className="text-white" />
                 </div>
 
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent mb-2 text-center">
+                <h1 className="text-3xl font-bold gradient-text mb-2 text-center" style={{ marginBottom: '0.5rem' }}>
                     U-Planner
                 </h1>
-                <p className="text-slate-400 font-medium mb-10 text-center text-sm">
+                <p className="text-slate-400 font-medium text-center text-sm" style={{ marginBottom: '2.5rem' }}>
                     Sistema Inteligente de Asignación de Horarios <br />
                     Universidad Adventista de Chile
                 </p>
 
-                <div className="w-full flex justify-center mb-6">
+                <div className="w-full flex justify-center" style={{ marginBottom: '1.5rem' }}>
                     <GoogleLogin
                         onSuccess={handleSuccess}
                         onError={handleError}
@@ -92,16 +107,17 @@ export default function Login({ onLoginSuccess }) {
                             initial={{ opacity: 0, height: 0, y: -10 }}
                             animate={{ opacity: 1, height: 'auto', y: 0 }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="bg-rose-500/10 border border-rose-500/30 text-rose-400 w-full p-4 rounded-xl flex gap-3 text-sm items-start overflow-hidden"
+                            className="w-full flex items-start"
+                            style={{ backgroundColor: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.3)', color: '#fb7185', padding: '1rem', borderRadius: '0.75rem', fontSize: '0.875rem', gap: '0.75rem', overflow: 'hidden' }}
                         >
-                            <AlertCircle size={18} className="shrink-0 mt-0.5" />
+                            <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
                             <p className="font-medium">{error}</p>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
-                <div className="mt-8 pt-6 border-t border-slate-700/50 w-full text-center">
-                    <p className="text-xs text-slate-500">
+                <div className="w-full text-center" style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(51, 65, 85, 0.5)' }}>
+                    <p className="text-slate-500" style={{ fontSize: '0.75rem' }}>
                         Acceso restringido para personal autorizado.
                     </p>
                 </div>
