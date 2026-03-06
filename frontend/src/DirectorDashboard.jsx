@@ -55,6 +55,21 @@ export default function DirectorDashboard({ schedules = [] }) {
             .filter(d => d && d.toUpperCase() !== 'POR DEFINIR' && d.trim() !== '')
     )).sort();
 
+    // Calcular carga total de los docentes de la carrera (considerando todos sus horarios para tener una carga realista)
+    const MAX_HOURS = 40;
+    const teacherWorkloads = careerTeachers.map(teacher => {
+        // Encontrar todos los horarios de este docente en TODAS las carreras
+        const allTeacherSchedules = schedules.filter(s => s.docente === teacher);
+        const totalHours = allTeacherSchedules.length * 1.5;
+        const load = Math.min(Math.round((totalHours / MAX_HOURS) * 100), 100);
+
+        let status = 'Disponible';
+        if (load >= 80) status = 'Carga Alta';
+        else if (load >= 50) status = 'Balanceado';
+
+        return { name: teacher, load, status, totalHours };
+    }).sort((a, b) => b.load - a.load); // Ordenar por carga descendente
+
     // Calcular métricas dinámicas
     const activeSubjects = new Set(filteredSchedules.map(s => s.asignatura).filter(Boolean)).size;
     const activeTeachers = new Set(filteredSchedules.map(s => s.docente).filter(d => d && d.toUpperCase() !== 'POR DEFINIR' && d.trim() !== '')).size;
@@ -201,36 +216,38 @@ export default function DirectorDashboard({ schedules = [] }) {
             </div>
 
             {/* Teacher Load Indicators */}
-            < div className="glass p-6" >
+            <div className="glass p-6">
                 <h3 className="text-xl font-bold mb-6">Estado de Plantilla Docente</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {[
-                        { name: 'Dr. Alan Turing', load: 85, status: 'Carga Alta' },
-                        { name: 'Msc. Grace Hopper', load: 60, status: 'Balanceado' },
-                        { name: 'Dr. John McCarthy', load: 30, status: 'Disponible' }
-                    ].map((prof, idx) => (
-                        <div key={idx} className="flex flex-col gap-3">
-                            <div className="flex justify-between items-center">
-                                <span className="font-semibold">{prof.name}</span>
-                                <span className={`text-[10px] font-bold uppercase tracking-wider ${prof.load > 80 ? 'text-red-400' : 'text-slate-500'}`}>
-                                    {prof.status}
-                                </span>
+                    {teacherWorkloads.length > 0 ? (
+                        teacherWorkloads.map((prof, idx) => (
+                            <div key={idx} className="flex flex-col gap-3">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-semibold">{prof.name}</span>
+                                    <span className={`text-[10px] font-bold uppercase tracking-wider ${prof.load >= 80 ? 'text-red-400' : 'text-slate-500'}`}>
+                                        {prof.status}
+                                    </span>
+                                </div>
+                                <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full transition-all duration-1000 ${prof.load >= 80 ? 'bg-red-500' : 'bg-emerald-500'}`}
+                                        style={{ width: `${prof.load}%` }}
+                                    />
+                                </div>
+                                <div className="flex justify-between text-[10px] text-slate-500">
+                                    <span>0h</span>
+                                    <span>{prof.totalHours}h ({prof.load}% de carga)</span>
+                                    <span>{MAX_HOURS}h</span>
+                                </div>
                             </div>
-                            <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-                                <div
-                                    className={`h-full transition-all duration-1000 ${prof.load > 80 ? 'bg-red-500' : 'bg-emerald-500'}`}
-                                    style={{ width: `${prof.load}%` }}
-                                />
-                            </div>
-                            <div className="flex justify-between text-[10px] text-slate-500">
-                                <span>0h</span>
-                                <span>{prof.load}% de carga</span>
-                                <span>40h</span>
-                            </div>
+                        ))
+                    ) : (
+                        <div className="col-span-full text-center text-slate-500 py-8">
+                            No hay docentes asignados en esta carrera.
                         </div>
-                    ))}
+                    )}
                 </div>
-            </div >
+            </div>
         </div >
     );
 }
